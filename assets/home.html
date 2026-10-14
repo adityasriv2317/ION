@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+
+    <title>Liquid Gradient</title>
+
+    <style>
+      body {
+        font-family: sans-serif;
+        overflow: hidden;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      #canvas {
+        position: absolute;
+        top: 0;
+        left: 0;
+        transition: translate(-50%, -50%);
+        z-index: -1;
+      }
+
+      .hero {
+        height: 100vh;
+        min-height: 30em;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        position: relative;
+        overflow: hidden;
+        color: aliceblue;
+      }
+
+      /* blur overlay */
+      .hero::before {
+        content: "";
+        background: hsla(0, 40%, 20%, 0.25);
+
+        backdrop-filter: blur(40px);
+        -webkit-backdrop-filter: blur(50px);
+
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+
+        z-index: 0;
+      }
+
+      .hero div {
+        z-index: 1;
+        text-align: center;
+      }
+
+      .hero h1 {
+        font-family: "B";
+        font-size: 4em;
+        font-size: clamp(3em, 8vw, 9em);
+        text-transform: uppercase;
+      }
+    </style>
+  </head>
+  <body>
+    <section class="hero">
+      <canvas id="canvas" width="200" height="200"></canvas>
+
+      <div class="content">
+      </div>
+    </section>
+
+    <script>
+      // canvas setup
+      const canvas = document.getElementById("canvas");
+      const ctx = canvas.getContext("2d"); // canvas 2d context
+
+      // function to generate a random number as a parameter for gradient
+      function randomNumber(min, max) {
+        return Math.random() * (max - min) + min;
+      }
+
+      // array for circle objects
+      let circles = [];
+      const colors = ["#001599", "#747cad", "#1427a3", "#6e14c9", "#000863" ];
+      // const colors = ["#ab210a", "#f2b705", "#0aab21", "#0a21ab", "#ab0a21"];
+
+      // set body background color as color[last]
+      document.body.style.backgroundColor = "#001599";
+
+      // create circle objects and their properties
+      function populate() {
+        circles = []; //clear previous circles
+
+        let circlesLen = window.innerWidth / 15; // number of circles based on window width
+        // circle population loop
+        for (let i = 0; i < circlesLen; i++) {
+          let radius = 80; // random radius
+          let x = randomNumber(radius, canvas.width - radius); // random x position
+          let y = randomNumber(radius, canvas.height - radius); // random y position
+
+          // random velocity for circle in x and y direction
+          let dx = randomNumber(-2, 2);
+          let dy = randomNumber(-2, 2);
+
+          let color = colors[Math.floor(Math.random() * colors.length)];
+
+          // push circle date into array
+          circles.push({ x, y, radius, dx, dy, color });
+        }
+      }
+
+      // function to draw circle
+      function drawCircle(circle) {
+        ctx.beginPath();
+        ctx.arc(circle.x, circle.y, circle.radius, 0, Math.PI * 2, false);
+        ctx.fillStyle = circle.color;
+        ctx.fill();
+        ctx.closePath();
+      }
+
+      // animate circles
+      function animate() {
+        requestAnimationFrame(animate); // call animate function recursively
+        ctx.clearRect(0, 0, canvas.width, canvas.height); // clear canvas
+
+        circles.forEach((circle) => {
+          // if circle reaches edge in x axis
+          if (
+            circle.x + circle.radius > canvas.width ||
+            circle.x - circle.radius < 0
+          ) {
+            circle.dx = -circle.dx; // reverse direction
+          }
+          // if circle reaches edge in y axis
+          if (
+            circle.y + circle.radius > canvas.height ||
+            circle.y - circle.radius < 0
+          ) {
+            circle.dy = -circle.dy; // reverse direction
+          }
+
+          // move circle
+          circle.x += circle.dx;
+          circle.y += circle.dy;
+          drawCircle(circle); // draw circle
+        });
+      }
+
+      // resize canvas to window size
+      function resizeCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        populate(); // repopulate circles on resize
+      }
+
+      resizeCanvas(); // initial canvas size
+      window.addEventListener("resize", resizeCanvas); // resize event listener
+
+      // initial population of circles
+      populate();
+      // start animation
+      animate();
+    </script>
+  </body>
+</html>

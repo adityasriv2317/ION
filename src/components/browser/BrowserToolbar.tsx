@@ -8,7 +8,6 @@ type Props = {
   onBack: () => void;
   onForward: () => void;
   onReload: () => void;
-  onHome: () => void;
   onTabs: () => void;
   tabCount: number;
 };
@@ -18,8 +17,7 @@ export default function BrowserToolbar(props: Props) {
     ["Back", props.onBack, props],
     ["Forward", props.onForward, props.canGoForward],
     ["Reload", props.onReload, true],
-    ["Home", props.onHome, true],
-    [`Tabs ${props.tabCount}`, props.onTabs, true],
+    [`${props.tabCount}`, props.onTabs, true],
   ] as const;
 
   return (
@@ -28,8 +26,10 @@ export default function BrowserToolbar(props: Props) {
         flexDirection: "row",
         justifyContent: "space-around",
         alignItems: "center",
-        paddingVertical: 10,
-        backgroundColor: "#131223",
+        paddingTop: 10,
+        // backgroundColor: "#131223",
+        maxWidth: "90%",
+        marginHorizontal: "auto",
       }}
     >
       {actions.map(([label, action, enabled]) => (
@@ -39,6 +39,14 @@ export default function BrowserToolbar(props: Props) {
           disabled={!enabled}
           accessibilityRole="button"
           accessibilityLabel={label}
+          style={{
+            backgroundColor: "#202033",
+            paddingVertical: 12,
+            paddingHorizontal: 12,
+            alignItems: "center",
+            minWidth: 40,
+            borderRadius: 32,
+          }}
         >
           <Text style={{ color: "#FFFFFF", fontSize: 12 }}>{label}</Text>
         </Pressable>

@@ -4,13 +4,34 @@ import WebView, { type WebView as WebViewType } from "react-native-webview";
 import type { WebViewNavigation } from "react-native-webview/lib/WebViewTypes";
 import { useBrowserStore } from "../../stores/browserStore";
 
+import AddressBar from "@/components/browser/AddressBar";
+import BrowserToolbar from "@/components/browser/BrowserToolbar";
+
 type Props = {
   tabId: string;
   url: string;
   onRef?: (ref: WebViewType | null) => void;
+  // addressBarProp: {
+  //   value: string;
+  //   onSubmit: (i: string) => {};
+  // };
+  // toolBarProp: {
+  //   tabCount: number;
+  //   onBack: () => {};
+  //   onTabs: () => {};
+  //   onForward: () => {};
+  //   onReload: () => {};
+  //   onHome: () => {};
+  // };
 };
 
-export default function BrowserWebView({ tabId, url, onRef }: Props) {
+export default function BrowserWebView({
+  tabId,
+  url,
+  onRef,
+  // addressBarProp,
+  // toolBarProp,
+}: Props) {
   const ref = useRef<WebViewType>(null);
   const updateTab = useBrowserStore((s) => s.updateTab);
 

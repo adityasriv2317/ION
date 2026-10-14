@@ -21,6 +21,10 @@ export default function AddressBar({ value, onSubmit, onFocus }: Props) {
         borderRadius: 16,
         paddingHorizontal: 12,
         backgroundColor: "#202033",
+        // marginHorizontal: 8,
+        marginVertical: 8,
+        maxWidth: "90%",
+        marginHorizontal: "auto",
       }}
     >
       <TextInput
@@ -29,14 +33,19 @@ export default function AddressBar({ value, onSubmit, onFocus }: Props) {
         onSubmitEditing={() => onSubmit(text)}
         onFocus={onFocus}
         placeholder="Search here"
-        placeholderTextColor="#123124"
+        placeholderTextColor="#db91fd"
         autoCorrect={false}
         keyboardType="url"
         returnKeyType="go"
         selectTextOnFocus
         accessibilityLabel="Search or enter website"
         autoCapitalize="none"
-        style={{ flex: 1, color: "#FFFFFF", paddingVertical: 12 }}
+        style={{
+          flex: 1,
+          color: "#FFFFFF",
+          paddingVertical: 12,
+          textAlign: "center",
+        }}
       />
       <Pressable onPress={() => onSubmit(text)} accessibilityRole="button">
         <Text style={{ color: "#BEB124", fontWeight: "700", padding: 8 }}>

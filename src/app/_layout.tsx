@@ -1,18 +1,41 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from 'expo-router';
-import * as SplashScreen from 'expo-splash-screen';
-import { useColorScheme } from 'react-native';
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Stack, useRouter, type Href } from "expo-router";
+import { StatusBar } from "expo-status-bar";
+import { useEffect } from "react";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 
-import { AnimatedSplashOverlay } from '@/components/animated-icon';
-import AppTabs from '@/components/app-tabs';
+export default function RootLayout() {
+  const router = useRouter();
 
-SplashScreen.preventAutoHideAsync();
+  useEffect(() => {
+    const checkUser = async () => {
+      const isUser = await AsyncStorage.getItem("welcomeScreenShown");
+      if (!isUser) {
+        router.replace("/(adons)/welcome" as unknown as Href);
+      }
+    };
+    checkUser();
+  }, [router]);
 
-export default function TabLayout() {
-  const colorScheme = useColorScheme();
+  // router.replace("/(adons)/welcome" as unknown as Href);
+
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <AnimatedSplashOverlay />
-      <AppTabs />
-    </ThemeProvider>
+    <SafeAreaProvider>
+      <StatusBar style="light" />
+
+      <Stack
+        screenOptions={{
+          headerShown: false,
+          contentStyle: {
+            backgroundColor: "#11111B",
+          },
+        }}
+      >
+        <Stack.Screen name="index" />
+        <Stack.Screen name="tabs" />
+        <Stack.Screen name="bookmarks" />
+        <Stack.Screen name="history" />
+      </Stack>
+    </SafeAreaProvider>
   );
 }

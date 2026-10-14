@@ -3,7 +3,7 @@ const SEARCH_ENGINE = "https://www.google.com/search?q=";
 export function resolveNavigationTarget(input: string): string {
   const value = input.trim();
 
-  if (!value) return "https://www.google.com";
+  if (!value) return "ion://home";
   // if (/^https?:\\/\\//i.test(value)) return value
   if (/^https?:\/\//i.test(value)) return value;
 
