@@ -20,17 +20,25 @@ export default function AddressBar({ value, onSubmit, onFocus }: Props) {
         alignItems: "center",
         borderRadius: 16,
         paddingHorizontal: 12,
-        backgroundColor: "#202033",
+        backgroundColor: "#323268",
         // marginHorizontal: 8,
-        marginVertical: 8,
+        marginVertical: 4,
         maxWidth: "90%",
         marginHorizontal: "auto",
+        // borderTopStartRadius: 14,
+        // borderTopEndRadius: 14,
       }}
     >
       <TextInput
         value={text}
         onChangeText={setText}
-        onSubmitEditing={() => onSubmit(text)}
+        onSubmitEditing={(t) => {
+          if (t.nativeEvent.text === "") {
+            setText(value);
+            return;
+          }
+          onSubmit(text);
+        }}
         onFocus={onFocus}
         placeholder="Search here"
         placeholderTextColor="#db91fd"

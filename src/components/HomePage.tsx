@@ -10,6 +10,7 @@ import {
 import HomeLiquid from "@/app/(adons)/HomeLiquid";
 import AddressBar from "@/components/browser/AddressBar";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useRouter } from "expo-router";
 
 type Props = {
   onNavigate: (url: string) => void;
@@ -24,6 +25,7 @@ const favourites = [
 
 export default function HomePage({ onNavigate }: Props) {
   const [query, setQuery] = useState("");
+  const router = useRouter();
 
   return (
     <SafeAreaView
@@ -58,6 +60,20 @@ export default function HomePage({ onNavigate }: Props) {
                 <Text style={styles.shortcutTitle}>{item.title}</Text>
               </Pressable>
             ))}
+          </View>
+          <View
+            style={{
+              width: "100%",
+              alignItems: "flex-end",
+              paddingHorizontal: 24,
+            }}
+          >
+            <Pressable
+              style={styles.tabButton}
+              onPress={() => router.push("/tabs")}
+            >
+              <Text style={styles.tabText}>Tabs</Text>
+            </Pressable>
           </View>
           <AddressBar value="" onSubmit={onNavigate} />
         </View>
@@ -98,5 +114,14 @@ const styles = StyleSheet.create({
   shortcutTitle: {
     color: "#D5D5E5",
     fontSize: 11,
+  },
+  tabButton: {
+    paddingVertical: 4,
+    paddingHorizontal: 10,
+    borderRadius: 8,
+    backgroundColor: "#ffffff4e",
+  },
+  tabText: {
+    color: "#D5D5E5",
   },
 });

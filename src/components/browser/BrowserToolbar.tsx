@@ -1,5 +1,3 @@
-import { labelStyle } from "@expo/ui/swift-ui/modifiers";
-import { act } from "react";
 import { Pressable, Text, View } from "react-native";
 
 type Props = {
@@ -14,7 +12,7 @@ type Props = {
 
 export default function BrowserToolbar(props: Props) {
   const actions = [
-    ["Back", props.onBack, props],
+    ["Back", props.onBack, true],
     ["Forward", props.onForward, props.canGoForward],
     ["Reload", props.onReload, true],
     [`${props.tabCount}`, props.onTabs, true],
@@ -40,12 +38,14 @@ export default function BrowserToolbar(props: Props) {
           accessibilityRole="button"
           accessibilityLabel={label}
           style={{
-            backgroundColor: "#202033",
+            backgroundColor: "#323268",
             paddingVertical: 12,
             paddingHorizontal: 12,
             alignItems: "center",
             minWidth: 40,
             borderRadius: 32,
+            marginHorizontal: 4,
+            opacity: enabled ? 1 : 0.5,
           }}
         >
           <Text style={{ color: "#FFFFFF", fontSize: 12 }}>{label}</Text>

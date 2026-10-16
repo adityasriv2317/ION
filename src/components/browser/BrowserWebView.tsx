@@ -1,16 +1,20 @@
-import { useRef } from "react";
-import { View, ActivityIndicator, Text } from "react-native";
+import { useRef, useMemo } from "react";
+import {
+  View,
+  ActivityIndicator,
+  StyleSheet,
+  PanResponder,
+  Platform,
+} from "react-native";
 import WebView, { type WebView as WebViewType } from "react-native-webview";
 import type { WebViewNavigation } from "react-native-webview/lib/WebViewTypes";
 import { useBrowserStore } from "../../stores/browserStore";
-
-import AddressBar from "@/components/browser/AddressBar";
-import BrowserToolbar from "@/components/browser/BrowserToolbar";
 
 type Props = {
   tabId: string;
   url: string;
   onRef?: (ref: WebViewType | null) => void;
+  onSwipeBackToHome?: () => void;
   // addressBarProp: {
   //   value: string;
   //   onSubmit: (i: string) => {};
@@ -29,11 +33,15 @@ export default function BrowserWebView({
   tabId,
   url,
   onRef,
+  onSwipeBackToHome,
   // addressBarProp,
   // toolBarProp,
 }: Props) {
   const ref = useRef<WebViewType>(null);
   const updateTab = useBrowserStore((s) => s.updateTab);
+  const canGoBack = useBrowserStore(
+    (s) => s.tabs.find((t) => t.id === tabId)?.canGoBack ?? false,
+  );
 
   const onNavigationStateChange = (nav: WebViewNavigation) => {
     updateTab(tabId, {
@@ -45,8 +53,23 @@ export default function BrowserWebView({
     });
   };
 
+  const swipeHandler = useMemo(
+    () =>
+      PanResponder.create({
+        onMoveShouldSetPanResponder: (_, st) => {
+          return st.dx > 15 && Math.abs(st.dx) > Math.abs(st.dy) * 1.5;
+        },
+        onPanResponderRelease: (_, st) => {
+          if (st.dx > 60 || st.vx > 0.5) {
+            onSwipeBackToHome?.();
+          }
+        },
+      }),
+    [onSwipeBackToHome],
+  );
+
   return (
-    <View style={{ flex: 1 }}>
+    <View style={{ flex: 1, position: "absolute", inset: 0 }}>
       <WebView
         ref={(node) => {
           ref.current = node;
@@ -62,15 +85,44 @@ export default function BrowserWebView({
         domStorageEnabled
         setSupportMultipleWindows={false}
         startInLoadingState
+        pullToRefreshEnabled
+        allowsBackForwardNavigationGestures={true}
         renderLoading={() => (
           <View
-            style={{ flex: 1, alignItems: "center", justifyContent: "center" }}
+            style={{
+              // StyleSheet.absoluteFillObject,
+              // flex: 1,
+              // alignItems: "center",
+              // justifyContent: "center",
+              // backgroundColor: "transparent",
+              // justifyContent: "center",
+              // alignItems: "center",
+              // zIndex: 10,
+              ...StyleSheet.absoluteFill,
+              alignItems: "center",
+              justifyContent: "center",
+              backgroundColor: "transparent",
+              zIndex: 10,
+            }}
           >
-            <ActivityIndicator />
-            <Text style={{ marginTop: 8 }}>Loading</Text>
+            <ActivityIndicator size="large" />
           </View>
         )}
       />
+
+      {Platform.OS === "ios" && !canGoBack && (
+        <View
+          {...swipeHandler.panHandlers}
+          style={{
+            position: "absolute",
+            left: 0,
+            top: 0,
+            bottom: 0,
+            width: 24,
+            zIndex: 20,
+          }}
+        />
+      )}
     </View>
   );
 }
