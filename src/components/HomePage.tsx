@@ -1,16 +1,11 @@
-import { useState } from "react";
-import {
-  KeyboardAvoidingView,
-  View,
-  Pressable,
-  Text,
-  StyleSheet,
-} from "react-native";
+import { View, Pressable, Text, StyleSheet } from "react-native";
+import { useRouter } from "expo-router";
 
 import HomeLiquid from "@/app/(adons)/HomeLiquid";
 import AddressBar from "@/components/browser/AddressBar";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { useRouter } from "expo-router";
+
+import AdaptiveButton from "@/components/ui/button";
+import * as SwiftUI from "@expo/ui/swift-ui/modifiers";
 
 type Props = {
   onNavigate: (url: string) => void;
@@ -24,65 +19,75 @@ const favourites = [
 ];
 
 export default function HomePage({ onNavigate }: Props) {
-  const [query, setQuery] = useState("");
   const router = useRouter();
 
   return (
-    <SafeAreaView
-      style={{ flex: 1, backgroundColor: "#11111B" }}
-      //   edges={["top", "bottom"]}
-    >
+    <View style={styles.mainContainer}>
       <HomeLiquid />
-      <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        keyboardVerticalOffset={0}
-        behavior="padding"
+      <View
+        style={{
+          flex: 1,
+          alignItems: "center",
+          justifyContent: "center",
+        }}
       >
+        <View style={styles.shortcuts}>
+          {favourites.map((item) => (
+            <Pressable
+              key={item.url}
+              style={styles.shortcut}
+              onPress={() => onNavigate(item.url)}
+            >
+              <View style={styles.shortcutIcon}>
+                <Text style={styles.shortcutInitial}>
+                  {item.title.charAt(0)}
+                </Text>
+              </View>
+              <Text style={styles.shortcutTitle}>{item.title}</Text>
+            </Pressable>
+          ))}
+        </View>
         <View
           style={{
-            flex: 1,
-            alignItems: "center",
-            justifyContent: "center",
+            width: "100%",
+            alignItems: "flex-end",
+            paddingHorizontal: 24,
           }}
         >
-          <View style={styles.shortcuts}>
-            {favourites.map((item) => (
-              <Pressable
-                key={item.url}
-                style={styles.shortcut}
-                onPress={() => onNavigate(item.url)}
-              >
-                <View style={styles.shortcutIcon}>
-                  <Text style={styles.shortcutInitial}>
-                    {item.title.charAt(0)}
-                  </Text>
-                </View>
-                <Text style={styles.shortcutTitle}>{item.title}</Text>
-              </Pressable>
-            ))}
-          </View>
-          <View
-            style={{
-              width: "100%",
-              alignItems: "flex-end",
-              paddingHorizontal: 24,
+          <AdaptiveButton
+            label="Tabs"
+            onPress={() => router.push("/tabs")}
+            uiModifiers={{
+              ios: [
+                SwiftUI.glassEffect({
+                  glass: {
+                    variant: "regular",
+                    interactive: false,
+                    tint: "#ffffff43",
+                  },
+                  // shape: "roundedRectangle",
+                  // cornerRadius: 6,
+                }),
+              ],
             }}
-          >
-            <Pressable
-              style={styles.tabButton}
-              onPress={() => router.push("/tabs")}
-            >
-              <Text style={styles.tabText}>Tabs</Text>
-            </Pressable>
-          </View>
-          <AddressBar value="" onSubmit={onNavigate} />
+          />
         </View>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+        <AddressBar value="" onSubmit={onNavigate} />
+      </View>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  mainContainer: {
+    flex: 1,
+    position: "absolute",
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
+    zIndex: 2,
+  },
   shortcuts: {
     flexDirection: "row",
     flexWrap: "wrap",
@@ -92,10 +97,13 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     backgroundColor: "#ffffff4e",
     borderRadius: 24,
+    alignContent: "center",
+    justifyContent: "space-evenly",
+    width: "80%",
   },
   shortcut: {
     alignItems: "center",
-    width: 65,
+    width: 72,
   },
   shortcutIcon: {
     width: 52,

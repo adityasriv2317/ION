@@ -5,6 +5,7 @@ import {
   View,
   BackHandler,
 } from "react-native";
+import type { WebView as WebViewType } from "react-native-webview";
 
 import AddressBar from "@/components/browser/AddressBar";
 import BrowserToolbar from "@/components/browser/BrowserToolbar";
@@ -17,20 +18,22 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import WebView from "react-native-webview";
 
 import HomePage from "@/components/HomePage";
-import { goBack } from "expo-router/build/global-state/router";
-import { setBackgroundColorAsync } from "expo-system-ui";
 
 export default function BrowserScreen() {
   const router = useRouter();
   const webRef = useRef<WebView>(null);
+  const webViewsRef = useRef(new Map<string, WebViewType>());
 
   const tabs = useBrowserStore((s) => s.tabs);
   const activeTabId = useBrowserStore((s) => s.activeTabId);
   const updateTab = useBrowserStore((s) => s.updateTab);
-  const addTab = useBrowserStore((s) => s.addTab);
 
   const hasHydrated = useBrowserStore((s) => s.hasHydrated);
   const activeTab = tabs.find((t) => t.id === activeTabId) ?? tabs[0];
+
+  const activeWebView = activeTab
+    ? webViewsRef.current.get(activeTab.id)
+    : undefined;
 
   const navigate = useCallback(
     (input: string) => {
@@ -97,23 +100,22 @@ export default function BrowserScreen() {
 
   if (!activeTab) return <HomePage onNavigate={navigate} />;
 
-  if (activeTab.url == HOME_URL) {
-    return <HomePage onNavigate={navigate} />;
-  }
-
   return (
     <SafeAreaView
       style={{ flex: 1, backgroundColor: "#11111B" }}
       edges={["top"]}
     >
-      {/* <View style={{ flex: 1, backgroundColor: "#11111B" }}> */}
-      {/* <StatusBar barStyle="light-content" /> */}
       <KeyboardAvoidingView
-        style={{ flex: 1 }}
+        style={{
+          flex: 1,
+          overflow: "hidden",
+          borderTopStartRadius: 14,
+          borderTopEndRadius: 14,
+        }}
         keyboardVerticalOffset={0}
         behavior="padding"
       >
-        <View
+        {/* <View
           style={{
             flex: 1,
             borderTopStartRadius: 14,
@@ -131,13 +133,13 @@ export default function BrowserScreen() {
             }}
             // addressBarProp={addressBarProp}
             // toolBarProp={toolBarProp}
-          />
+          /> */}
 
-          {/* <KeyboardAvoidingView
+        {/* <KeyboardAvoidingView
           behavior={Platform.OS === "ios" ? "padding" : "height"}
         > */}
-          {/* <View></View> */}
-          <View
+        {/* <View></View> */}
+        {/* <View
             style={{
               flex: 1,
               position: "absolute",
@@ -146,9 +148,9 @@ export default function BrowserScreen() {
               // inset: 1,
             }}
           >
-            <AddressBar value={activeTab.url} onSubmit={navigate} />
-            {/* </KeyboardAvoidingView> */}
-            <BrowserToolbar
+            <AddressBar value={activeTab.url} onSubmit={navigate} /> */}
+        {/* </KeyboardAvoidingView> */}
+        {/* <BrowserToolbar
               canGoBack={true}
               canGoForward={activeTab.canGoForward}
               onBack={() => {
@@ -164,8 +166,67 @@ export default function BrowserScreen() {
               tabCount={tabs.length}
             />
           </View>
-        </View>
+        </View> */}
         {/* </View> */}
+
+        <View style={{ flex: 1 }}>
+          {tabs
+            .filter((tab) => tab.url !== HOME_URL)
+            .map((tab) => (
+              <View
+                key={tab.id}
+                style={{
+                  position: "absolute",
+                  top: 0,
+                  right: 0,
+                  bottom: 0,
+                  left: 0,
+                  opacity: tab.id === activeTabId ? 1 : 0,
+                  zIndex: tab.id === activeTabId ? 1 : 0,
+                }}
+                pointerEvents={tab.id === activeTabId ? "auto" : "none"}
+              >
+                <BrowserWebView
+                  tabId={tab.id}
+                  url={tab.url}
+                  onRef={(node) => {
+                    if (node) {
+                      webViewsRef.current.set(tab.id, node);
+                    } else {
+                      webViewsRef.current.delete(tab.id);
+                    }
+                  }}
+                />
+                <View
+                  style={{
+                    flex: 1,
+                    position: "absolute",
+                    bottom: 32,
+                    width: "100%",
+                  }}
+                >
+                  <AddressBar value={activeTab.url} onSubmit={navigate} />
+                  <BrowserToolbar
+                    canGoBack={true}
+                    canGoForward={activeTab.canGoForward}
+                    onBack={() => {
+                      if (!activeTab.canGoBack) {
+                        navigate(HOME_URL);
+                        return;
+                      }
+                      activeWebView?.goBack();
+                    }}
+                    onForward={() => activeWebView?.goForward()}
+                    onReload={() => activeWebView?.reload()}
+                    onTabs={() => router.push("/tabs")}
+                    tabCount={tabs.length}
+                  />
+                </View>
+              </View>
+            ))}
+        </View>
+
+        {activeTab.url === HOME_URL && <HomePage onNavigate={navigate} />}
       </KeyboardAvoidingView>
     </SafeAreaView>
   );

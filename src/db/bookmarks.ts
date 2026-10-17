@@ -1,7 +1,21 @@
 import { databasePromise } from "@/db/database";
 import type { Bookmark } from "@/types/browser";
 
+async function ensureSchema() {
+  const db = await databasePromise;
+  await db.execAsync(`
+    CREATE TABLE IF NOT EXISTS bookmarks (
+      id TEXT PRIMARY KEY NOT NULL,
+      url TEXT NOT NULL,
+      title TEXT,
+      created_at INTEGER NOT NULL
+    );
+  `);
+}
+
 export async function saveBookmark(item: Bookmark) {
+  await ensureSchema();
+
   const db = await databasePromise;
   await db.runAsync(
     `INSERT INTO bookmarks (id, url, title, created_at)
@@ -15,6 +29,8 @@ export async function saveBookmark(item: Bookmark) {
 }
 
 export async function listBookmarks(): Promise<Bookmark[]> {
+  await ensureSchema();
+
   const db = await databasePromise;
   const rows = await db.getAllAsync<{
     id: string;

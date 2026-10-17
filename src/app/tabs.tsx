@@ -1,7 +1,9 @@
-import { FlatList, Pressable, Text, View } from "react-native";
+import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
 import { useRouter } from "expo-router";
 import { useBrowserStore } from "@/stores/browserStore";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { HugeiconsIcon } from "@hugeicons/react-native";
+import { Bookmark01Icon, HistoryIcon } from "@hugeicons/core-free-icons";
 
 export default function TabsScreen() {
   const router = useRouter();
@@ -12,61 +14,29 @@ export default function TabsScreen() {
   const closeTab = useBrowserStore((s) => s.closeTab);
 
   return (
-    <SafeAreaView
-      style={{
-        flex: 1,
-        backgroundColor: "#111121",
-        paddingHorizontal: 20,
-        paddingTop: 16,
-      }}
-    >
-      <Text
-        style={{
-          color: "white",
-          fontSize: 24,
-          fontWeight: "700",
-          marginBottom: 20,
-        }}
-      >
-        Tabs
-      </Text>
+    <SafeAreaView style={styles.screen}>
+      <Text style={styles.heading}>Tabs</Text>
 
       <FlatList
         data={tabs}
         keyExtractor={(item) => item.id}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 16 }}
+        contentContainerStyle={styles.list}
         renderItem={({ item }) => {
           const isActive = item.id === activeTabId;
 
           return (
-            <View
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                paddingVertical: 16,
-                paddingHorizontal: 16,
-                marginBottom: 10,
-                borderRadius: 14,
-                backgroundColor: isActive ? "#292747" : "#1B1B2D",
-                borderWidth: 1,
-                borderColor: isActive ? "#7657E8" : "#29293B",
-              }}
-            >
+            <View style={[styles.tabCard, isActive && styles.activeTabCard]}>
               <Pressable
                 onPress={() => {
                   setActiveTab(item.id);
                   router.back();
                 }}
-                style={{ flex: 1, justifyContent: "center" }}
+                style={styles.tabButton}
               >
                 <Text
                   numberOfLines={1}
-                  style={{
-                    color: isActive ? "#FFFFFF" : "#B5B5C7",
-                    fontSize: 15,
-                    fontWeight: isActive ? "600" : "500",
-                  }}
+                  style={[styles.tabTitle, isActive && styles.activeTabTitle]}
                 >
                   {item.title || "New Tab"}
                 </Text>
@@ -77,32 +47,36 @@ export default function TabsScreen() {
                 accessibilityRole="button"
                 accessibilityLabel="Close tab"
                 hitSlop={8}
-                style={{
-                  width: 32,
-                  height: 32,
-                  marginLeft: 12,
-                  borderRadius: 10,
-                  backgroundColor: "#34202E",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
+                style={styles.closeButton}
               >
-                <Text
-                  style={{
-                    color: "#F4A5B5",
-                    fontSize: 16,
-                    fontWeight: "600",
-                  }}
-                >
-                  ×
-                </Text>
+                <Text style={styles.closeText}>×</Text>
               </Pressable>
             </View>
           );
         }}
       />
 
-      <View style={{ alignItems: "center", paddingVertical: 12 }}>
+      <View style={styles.footer}>
+        <Pressable
+          onPress={() => {
+            router.push("/history");
+          }}
+          accessibilityRole="button"
+          accessibilityLabel="History"
+          style={styles.utilButton}
+        >
+          <HugeiconsIcon icon={HistoryIcon} size={24} color="#FFFFFF" />
+        </Pressable>
+        <Pressable
+          onPress={() => {
+            router.push("/bookmarks");
+          }}
+          accessibilityRole="button"
+          accessibilityLabel="Bookmarks"
+          style={styles.utilButton}
+        >
+          <HugeiconsIcon icon={Bookmark01Icon} size={24} color="#FFFFFF" />
+        </Pressable>
         <Pressable
           onPress={() => {
             addTab();
@@ -110,27 +84,101 @@ export default function TabsScreen() {
           }}
           accessibilityRole="button"
           accessibilityLabel="Add new tab"
-          style={{
-            width: 58,
-            height: 50,
-            alignItems: "center",
-            justifyContent: "center",
-            backgroundColor: "#7657E8",
-            borderRadius: 14,
-          }}
+          style={styles.addButton}
         >
-          <Text
-            style={{
-              color: "white",
-              fontSize: 28,
-              fontWeight: "400",
-              lineHeight: 32,
-            }}
-          >
-            +
-          </Text>
+          <Text style={styles.addText}>+</Text>
         </Pressable>
       </View>
     </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  screen: {
+    flex: 1,
+    backgroundColor: "#111121",
+    paddingHorizontal: 20,
+    paddingTop: 16,
+  },
+  heading: {
+    color: "white",
+    fontSize: 24,
+    fontWeight: "700",
+    marginBottom: 20,
+  },
+  list: {
+    paddingBottom: 16,
+  },
+  tabCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 16,
+    paddingHorizontal: 16,
+    marginBottom: 10,
+    borderRadius: 14,
+    backgroundColor: "#1B1B2D",
+    borderWidth: 1,
+    borderColor: "#29293B",
+  },
+  activeTabCard: {
+    backgroundColor: "#292747",
+    borderColor: "#7657E8",
+  },
+  tabButton: {
+    flex: 1,
+    justifyContent: "center",
+  },
+  tabTitle: {
+    color: "#B5B5C7",
+    fontSize: 15,
+    fontWeight: "500",
+  },
+  activeTabTitle: {
+    color: "#FFFFFF",
+    fontWeight: "600",
+  },
+  closeButton: {
+    width: 32,
+    height: 32,
+    marginLeft: 12,
+    borderRadius: 10,
+    backgroundColor: "#34202E",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  closeText: {
+    color: "#F4A5B5",
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  footer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "flex-end",
+    paddingVertical: 10,
+    marginHorizontal: 16,
+    gap: 8,
+  },
+  addButton: {
+    width: 64,
+    height: 64,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#7657E8",
+    borderRadius: 14,
+  },
+  utilButton: {
+    width: 48,
+    height: 48,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#7657E8",
+    borderRadius: 14,
+  },
+  addText: {
+    color: "white",
+    fontSize: 28,
+    fontWeight: "400",
+    lineHeight: 32,
+  },
+});

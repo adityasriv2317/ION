@@ -10,6 +10,12 @@ import WebView, { type WebView as WebViewType } from "react-native-webview";
 import type { WebViewNavigation } from "react-native-webview/lib/WebViewTypes";
 import { useBrowserStore } from "../../stores/browserStore";
 
+import { recordVisit } from "@/db/history";
+
+function createHistoryId() {
+  return `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+}
+
 type Props = {
   tabId: string;
   url: string;
@@ -38,6 +44,8 @@ export default function BrowserWebView({
   // toolBarProp,
 }: Props) {
   const ref = useRef<WebViewType>(null);
+  const pendingNavigationUrl = useRef<string | null>(null);
+  const lastRecordedUrl = useRef<string | null>(null);
   const updateTab = useBrowserStore((s) => s.updateTab);
   const canGoBack = useBrowserStore(
     (s) => s.tabs.find((t) => t.id === tabId)?.canGoBack ?? false,
@@ -50,6 +58,31 @@ export default function BrowserWebView({
       isLoading: nav.loading,
       canGoBack: nav.canGoBack,
       canGoForward: nav.canGoForward,
+    });
+
+    if (nav.loading) {
+      pendingNavigationUrl.current = nav.url;
+      return;
+    }
+
+    const isCompletedNavigation =
+      pendingNavigationUrl.current === nav.url ||
+      (pendingNavigationUrl.current === null &&
+        lastRecordedUrl.current !== nav.url);
+    pendingNavigationUrl.current = null;
+
+    if (!isCompletedNavigation || !/^https?:\/\//i.test(nav.url)) {
+      return;
+    }
+
+    lastRecordedUrl.current = nav.url;
+    void recordVisit({
+      id: createHistoryId(),
+      url: nav.url,
+      title: nav.title || nav.url,
+      visitedAt: Date.now(),
+    }).catch((error: unknown) => {
+      console.error("Failed to save history entry.", error);
     });
   };
 
@@ -69,7 +102,7 @@ export default function BrowserWebView({
   );
 
   return (
-    <View style={{ flex: 1, position: "absolute", inset: 0 }}>
+    <View style={styles.container}>
       <WebView
         ref={(node) => {
           ref.current = node;
@@ -101,7 +134,7 @@ export default function BrowserWebView({
               ...StyleSheet.absoluteFill,
               alignItems: "center",
               justifyContent: "center",
-              backgroundColor: "transparent",
+              backgroundColor: "#11111B",
               zIndex: 10,
             }}
           >
@@ -126,3 +159,12 @@ export default function BrowserWebView({
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    position: "absolute",
+    inset: 0,
+    backgroundColor: "#11111B",
+  },
+});

@@ -1,14 +1,37 @@
 import { databasePromise } from "@/db/database";
 import { HistoryEntry } from "@/types/browser";
 
-export async function recordVisit(item: HistoryEntry) {
+// Helper to ensure the schema is initialized
+async function ensureSchema() {
   const db = await databasePromise;
-  await db.runAsync(`
-    INSERT INTO history(id,url,title,visited_at)
-    VALUES(?,?,?,?)`);
+  await db.execAsync(`
+    CREATE TABLE IF NOT EXISTS history (
+      id TEXT PRIMARY KEY NOT NULL,
+      url TEXT NOT NULL,
+      title TEXT,
+      visited_at INTEGER NOT NULL
+    );
+  `);
+}
+
+export async function recordVisit(item: HistoryEntry) {
+  await ensureSchema();
+
+  const db = await databasePromise;
+  await db.runAsync(
+    `INSERT INTO history (id, url, title, visited_at) VALUES (?, ?, ?, ?)`,
+    item.id,
+    item.url,
+    item.title,
+    item.visitedAt,
+  );
+
+  console.log("recorded history");
 }
 
 export async function listHistory(): Promise<HistoryEntry[]> {
+  await ensureSchema();
+
   const db = await databasePromise;
   const rows = await db.getAllAsync<{
     id: string;
@@ -25,4 +48,11 @@ export async function listHistory(): Promise<HistoryEntry[]> {
     title: r.title,
     visitedAt: r.visited_at,
   }));
+}
+
+export async function clearHistory() {
+  await ensureSchema();
+
+  const db = await databasePromise;
+  await db.runAsync("DELETE FROM history");
 }

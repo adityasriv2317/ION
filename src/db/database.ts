@@ -15,11 +15,11 @@ export async function initializeDatabase() {
         );
 
         CREATE TABLE IF NOT EXISTS history (
-            id TEXT PRIMARY KEY NOT NULL
+            id TEXT PRIMARY KEY NOT NULL,
             url TEXT NOT NULL,
-            title TEXT NOT NULL,
-            visited_ar INTEGER NOT NULL
-        )
+            title TEXT,
+            visited_at INTEGER NOT NULL
+        );
 
         CREATE INDEX IF NOT EXISTS idx_history_visited_at
         ON history(visited_at DESC);

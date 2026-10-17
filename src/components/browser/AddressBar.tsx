@@ -1,5 +1,14 @@
 import { useEffect, useState } from "react";
-import { TextInput, View, Pressable, Text } from "react-native";
+import { View, TextInput } from "react-native";
+
+import AdaptiveButton from "@/components/ui/button";
+import { glassEffect } from "@expo/ui/swift-ui/modifiers";
+import {
+  background,
+  paddingAll,
+  clip,
+  Shapes,
+} from "@expo/ui/jetpack-compose/modifiers";
 
 type Props = {
   value: string;
@@ -21,14 +30,12 @@ export default function AddressBar({ value, onSubmit, onFocus }: Props) {
         borderRadius: 16,
         paddingHorizontal: 12,
         backgroundColor: "#323268",
-        // marginHorizontal: 8,
         marginVertical: 4,
         maxWidth: "90%",
         marginHorizontal: "auto",
-        // borderTopStartRadius: 14,
-        // borderTopEndRadius: 14,
       }}
     >
+      {/* <TextInput */}
       <TextInput
         value={text}
         onChangeText={setText}
@@ -43,7 +50,7 @@ export default function AddressBar({ value, onSubmit, onFocus }: Props) {
         placeholder="Search here"
         placeholderTextColor="#db91fd"
         autoCorrect={false}
-        keyboardType="url"
+        keyboardType="web-search"
         returnKeyType="go"
         selectTextOnFocus
         accessibilityLabel="Search or enter website"
@@ -55,11 +62,27 @@ export default function AddressBar({ value, onSubmit, onFocus }: Props) {
           textAlign: "center",
         }}
       />
-      <Pressable onPress={() => onSubmit(text)} accessibilityRole="button">
-        <Text style={{ color: "#BEB124", fontWeight: "700", padding: 8 }}>
-          GO
-        </Text>
-      </Pressable>
+      <AdaptiveButton
+        label="GO"
+        onPress={() => onSubmit(text)}
+        uiModifiers={{
+          ios: [
+            glassEffect({
+              glass: {
+                variant: "regular",
+                interactive: false,
+                tint: "#1dc400",
+              },
+              shape: "circle",
+            }),
+          ],
+          android: [
+            background("#f0d908"),
+            paddingAll(12),
+            clip(Shapes.RoundedCorner(20)),
+          ],
+        }}
+      />
     </View>
   );
 }

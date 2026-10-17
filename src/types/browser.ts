@@ -1,3 +1,5 @@
+type TabLifecycle = "active" | "warm" | "suspended" | "restoring";
+
 export type BrowserTab = {
   id: string;
   url: string;
@@ -5,6 +7,9 @@ export type BrowserTab = {
   isLoading: boolean;
   canGoBack: boolean;
   canGoForward: boolean;
+
+  lifecycle: TabLifecycle;
+  lastAccessed: number;
 };
 
 export type Bookmark = {
