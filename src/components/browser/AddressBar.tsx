@@ -1,14 +1,14 @@
 import { useEffect, useState } from "react";
-import { View, TextInput } from "react-native";
+import { View } from "react-native";
 
 import AdaptiveButton from "@/components/ui/button";
-import { glassEffect } from "@expo/ui/swift-ui/modifiers";
-import {
-  background,
-  paddingAll,
-  clip,
-  Shapes,
-} from "@expo/ui/jetpack-compose/modifiers";
+import TextInput from "@/components/ui/textInput";
+import { clip, paddingAll, Shapes } from "@expo/ui/jetpack-compose/modifiers";
+
+import * as jetpack from "@expo/ui/jetpack-compose/modifiers";
+import { AddressBar as AB } from "@/components/ui/AddressBar";
+
+import * as SwiftUI from "@expo/ui/swift-ui/modifiers";
 
 type Props = {
   value: string;
@@ -21,6 +21,14 @@ export default function AddressBar({ value, onSubmit, onFocus }: Props) {
 
   useEffect(() => setText(value), [value]);
 
+  const handleSubmit = () => {
+    if (text === "") {
+      setText(value);
+      return;
+    }
+    onSubmit(text);
+  };
+
   return (
     <View
       style={{
@@ -28,58 +36,39 @@ export default function AddressBar({ value, onSubmit, onFocus }: Props) {
         flexDirection: "row",
         alignItems: "center",
         borderRadius: 16,
-        paddingHorizontal: 12,
-        backgroundColor: "#323268",
+        paddingHorizontal: 16,
         marginVertical: 4,
         maxWidth: "90%",
         marginHorizontal: "auto",
+        justifyContent: "center",
       }}
     >
-      {/* <TextInput */}
-      <TextInput
+      <AB
         value={text}
         onChangeText={setText}
-        onSubmitEditing={(t) => {
-          if (t.nativeEvent.text === "") {
-            setText(value);
-            return;
-          }
-          onSubmit(text);
-        }}
-        onFocus={onFocus}
-        placeholder="Search here"
-        placeholderTextColor="#db91fd"
-        autoCorrect={false}
-        keyboardType="web-search"
-        returnKeyType="go"
-        selectTextOnFocus
-        accessibilityLabel="Search or enter website"
-        autoCapitalize="none"
-        style={{
-          flex: 1,
-          color: "#FFFFFF",
-          paddingVertical: 12,
-          textAlign: "center",
-        }}
+        onSubmitEditing={handleSubmit}
+        placeholder="Search or enter address"
       />
+
       <AdaptiveButton
         label="GO"
-        onPress={() => onSubmit(text)}
+        onPress={handleSubmit}
         uiModifiers={{
           ios: [
-            glassEffect({
+            SwiftUI.glassEffect({
               glass: {
                 variant: "regular",
-                interactive: false,
-                tint: "#1dc400",
+                interactive: true,
+                tint: "#158afe",
               },
-              shape: "circle",
+              shape: "capsule",
             }),
+            SwiftUI.padding({ bottom: 6 }),
           ],
           android: [
-            background("#f0d908"),
-            paddingAll(12),
-            clip(Shapes.RoundedCorner(20)),
+            // background("#f0d908"),
+            jetpack.paddingAll(16),
+            jetpack.clip(Shapes.Material.Clover4Leaf),
           ],
         }}
       />

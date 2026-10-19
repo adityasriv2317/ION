@@ -1,118 +1,141 @@
-import { Host, Text, TextField, useNativeState } from "@expo/ui/swift-ui";
+import {
+  Host,
+  HStack,
+  Text,
+  TextField,
+  type TextFieldRef,
+  useNativeState,
+} from "@expo/ui/swift-ui";
 
 import {
-  autocorrectionDisabled,
   disabled as disabledModifier,
+  fixedSize,
   foregroundStyle,
-  keyboardType as keyboardTypeModifier,
+  glassEffect,
+  lineLimit,
   onSubmit,
   padding,
   submitLabel,
-  textInputAutocapitalization,
   type ModifierConfig as IOSModifierConfig,
 } from "@expo/ui/swift-ui/modifiers";
 
-import { useEffect } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { StyleSheet } from "react-native";
 
-import type { TextInputProps } from "./textinput";
+export interface TextInputProps {
+  placeholder?: string;
+  value?: string;
+  defaultValue?: string;
+  disabled?: boolean;
+  onChangeText?: (text: string) => void;
+  onSubmitEditing?: (e: { nativeEvent: { text: string } }) => void;
+  uiModifiers?: {
+    ios?: IOSModifierConfig[];
+  };
+}
 
 export default function TextInput({
+  placeholder,
   value,
   defaultValue = "",
+  disabled = false,
   onChangeText,
   onSubmitEditing,
-  onFocus,
-  placeholder,
-  placeholderTextColor = "#888888",
-  disabled = false,
-  autoFocus = false,
-  autoCorrect = true,
-  keyboardType = "default",
-  returnKeyType = "default",
-  selectTextOnFocus = false,
-  autoCapitalize = "none",
   uiModifiers,
 }: TextInputProps) {
+  const inputRef = useRef<TextFieldRef>(null);
   const text = useNativeState(value ?? defaultValue);
-  const selection = useNativeState({ start: 0, end: 0 });
+  const [isFocused, setIsFocused] = useState(false);
 
+  // Sync external controlled value with native state.
   useEffect(() => {
     if (value !== undefined && text.value !== value) {
       text.value = value;
     }
   }, [value, text]);
 
-  const handleFocus = (focused: boolean) => {
-    if (focused && selectTextOnFocus) {
-      selection.value = {
-        start: 0,
-        end: text.value.length,
-      };
+  const handleTextChange = useCallback(
+    (nextText: string) => {
+      // Keep native observable state and parent state in sync.
+      if (text.value !== nextText) {
+        text.value = nextText;
+      }
+
+      onChangeText?.(nextText);
+    },
+    [text, onChangeText],
+  );
+
+  const handleSend = useCallback(() => {
+    const current = text.value;
+
+    if (disabled || current.trim().length === 0) {
+      return;
     }
 
-    onFocus?.(focused);
-  };
+    onSubmitEditing?.({
+      nativeEvent: { text: current },
+    });
 
-  const nativeKeyboardType = (
-    keyboardType === "numeric"
-      ? "numeric"
-      : keyboardType === "decimal-pad"
-        ? "decimal-pad"
-        : keyboardType === "phone-pad"
-          ? "phone-pad"
-          : keyboardType
-  ) as Parameters<typeof keyboardTypeModifier>[0];
+    // Uncontrolled inputs clear themselves.
+    // Controlled inputs must be cleared by the parent.
+    if (value === undefined) {
+      text.value = "";
+      void inputRef.current?.clear();
+    }
+  }, [disabled, text, value, onSubmitEditing]);
 
-  const nativeSubmitLabel =
-    returnKeyType === "go"
-      ? "go"
-      : returnKeyType === "search"
-        ? "search"
-        : returnKeyType === "send"
-          ? "send"
-          : returnKeyType === "next"
-            ? "next"
-            : returnKeyType === "done"
-              ? "done"
-              : "return";
-
-  const modifiers: IOSModifierConfig[] = [
-    foregroundStyle("#FFFFFF"),
-    padding({ vertical: 12 }),
-    keyboardTypeModifier(nativeKeyboardType),
-    ...(!autoCorrect ? [autocorrectionDisabled()] : []),
-    textInputAutocapitalization(
-      autoCapitalize === "none" ? "never" : autoCapitalize,
-    ),
-    submitLabel(nativeSubmitLabel),
-    onSubmit(() => {
-      onSubmitEditing?.({
-        nativeEvent: { text: text.value },
-      });
-    }),
+  const fieldModifiers: IOSModifierConfig[] = [
+    submitLabel("send"),
+    onSubmit(handleSend),
+    lineLimit({ min: 1, max: 5 }),
+    fixedSize({ horizontal: false, vertical: true }),
     ...(disabled ? [disabledModifier(true)] : []),
     ...(uiModifiers?.ios ?? []),
   ];
 
   return (
-    <Host matchContents>
-      <TextField
-        text={text}
-        selection={selection}
-        placeholder={placeholder}
-        autoFocus={autoFocus}
-        onTextChange={onChangeText}
-        onFocusChange={handleFocus}
-        modifiers={modifiers}
+    <Host matchContents={{ vertical: true }} style={styles.host}>
+      <HStack
+        alignment="bottom"
+        spacing={8}
+        modifiers={[
+          padding({ horizontal: 16, vertical: 12 }),
+          glassEffect({
+            glass: {
+              variant: "regular",
+              interactive: true,
+            },
+            shape: "roundedRectangle",
+            cornerRadius: 24,
+          }),
+        ]}
       >
-        {placeholder ? (
-          <TextField.Placeholder>
-            <Text modifiers={[foregroundStyle(placeholderTextColor)]}>
-              {placeholder}
-            </Text>
-          </TextField.Placeholder>
-        ) : undefined}
-      </TextField>
+        <TextField
+          ref={inputRef}
+          text={text}
+          axis="vertical"
+          onTextChange={handleTextChange}
+          onFocusChange={setIsFocused}
+          modifiers={fieldModifiers}
+        >
+          {placeholder ? (
+            <TextField.Placeholder>
+              <Text modifiers={[foregroundStyle("rgba(255, 255, 255, 0.45)")]}>
+                {placeholder}
+              </Text>
+            </TextField.Placeholder>
+          ) : undefined}
+        </TextField>
+      </HStack>
     </Host>
   );
 }
+
+const styles = StyleSheet.create({
+  host: {
+    width: "100%",
+    paddingHorizontal: 16,
+    paddingBottom: 16,
+  },
+});

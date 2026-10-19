@@ -16,5 +16,5 @@
     "**/*.tsx",
     ".expo/types/**/*.ts",
     "expo-env.d.ts"
-,     "src/components/ui/button.ios.txt"  ]
+,     "src/components/ui/button.ios.txt", "src/components/ui/textinput.txt", "src/components/ui/textinput.ios.txt"  ]
 }

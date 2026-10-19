@@ -1,35 +1,15 @@
-import { useEffect, useState } from "react";
-import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from "react-native";
+import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
 import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { HugeiconsIcon } from "@hugeicons/react-native";
+import { Delete02Icon } from "@hugeicons/core-free-icons";
 
-import { listBookmarks } from "@/db/bookmarks";
-import type { Bookmark } from "@/types/browser";
+import { useBrowserStore } from "@/stores/browserStore";
 
 export default function BookmarksScreen() {
   const router = useRouter();
-  const [bookmarks, setBookmarks] = useState<Bookmark[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    let isMounted = true;
-
-    listBookmarks()
-      .then((items) => {
-        if (isMounted) setBookmarks(items);
-      })
-      .catch(() => {
-        if (isMounted) setError("Unable to load bookmarks.");
-      })
-      .finally(() => {
-        if (isMounted) setIsLoading(false);
-      });
-
-    return () => {
-      isMounted = false;
-    };
-  }, []);
+  const bookmarks = useBrowserStore((state) => state.bookmarks);
+  const removeBookmark = useBrowserStore((state) => state.removeBookmark);
 
   return (
     <SafeAreaView style={styles.screen}>
@@ -41,25 +21,38 @@ export default function BookmarksScreen() {
         <View style={styles.headerSpacer} />
       </View>
 
-      {isLoading ? (
-        <ActivityIndicator color="#B7A5FF" style={styles.center} />
-      ) : error ? (
-        <Text style={styles.message}>{error}</Text>
-      ) : (
-        <FlatList
-          data={bookmarks}
-          keyExtractor={(item) => item.id}
-          contentContainerStyle={bookmarks.length === 0 ? styles.emptyList : styles.list}
-          showsVerticalScrollIndicator={false}
-          renderItem={({ item }) => (
-            <View style={styles.card}>
-              <Text style={styles.title} numberOfLines={1}>{item.title || "Untitled bookmark"}</Text>
-              <Text style={styles.url} numberOfLines={1}>{item.url}</Text>
+      <FlatList
+        data={bookmarks}
+        keyExtractor={(item) => item.id}
+        contentContainerStyle={bookmarks.length === 0 ? styles.emptyList : styles.list}
+        showsVerticalScrollIndicator={false}
+        renderItem={({ item }) => (
+          <View style={styles.card}>
+            <View style={styles.details}>
+              <Text style={styles.title} numberOfLines={1}>
+                {item.title || "Untitled bookmark"}
+              </Text>
+              <Text style={styles.url} numberOfLines={1}>
+                {item.url}
+              </Text>
             </View>
-          )}
-          ListEmptyComponent={<Text style={styles.message}>No bookmarks yet.</Text>}
-        />
-      )}
+            <Pressable
+              onPress={() => removeBookmark(item.id)}
+              accessibilityRole="button"
+              accessibilityLabel={`Remove ${item.title || "bookmark"}`}
+              hitSlop={8}
+              style={styles.removeButton}
+            >
+              <HugeiconsIcon
+                icon={Delete02Icon}
+                size={20}
+                color="#F4A5B5"
+              />
+            </Pressable>
+          </View>
+        )}
+        ListEmptyComponent={<Text style={styles.message}>No bookmarks yet.</Text>}
+      />
     </SafeAreaView>
   );
 }
@@ -101,6 +94,8 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   card: {
+    flexDirection: "row",
+    alignItems: "center",
     backgroundColor: "#1B1B2D",
     borderColor: "#29293B",
     borderRadius: 14,
@@ -108,6 +103,9 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     paddingHorizontal: 16,
     paddingVertical: 14,
+  },
+  details: {
+    flex: 1,
   },
   title: {
     color: "#FFFFFF",
@@ -119,8 +117,12 @@ const styles = StyleSheet.create({
     color: "#9D9DB2",
     fontSize: 13,
   },
-  center: {
-    flex: 1,
+  removeButton: {
+    width: 36,
+    height: 36,
+    marginLeft: 12,
+    alignItems: "center",
+    justifyContent: "center",
   },
   message: {
     color: "#B5B5C7",

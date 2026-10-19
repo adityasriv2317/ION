@@ -12,6 +12,9 @@ export default function TabsScreen() {
   const setActiveTab = useBrowserStore((s) => s.setActiveTab);
   const addTab = useBrowserStore((s) => s.addTab);
   const closeTab = useBrowserStore((s) => s.closeTab);
+  const bookmarks = useBrowserStore((s) => s.bookmarks);
+  const addBookmark = useBrowserStore((s) => s.addBookmark);
+  const removeBookmark = useBrowserStore((s) => s.removeBookmark);
 
   return (
     <SafeAreaView style={styles.screen}>
@@ -40,6 +43,44 @@ export default function TabsScreen() {
                 >
                   {item.title || "New Tab"}
                 </Text>
+              </Pressable>
+
+              <Pressable
+                onPress={() => {
+                  const bookmark = bookmarks.find(
+                    (bookmarkItem) => bookmarkItem.url === item.url,
+                  );
+
+                  if (bookmark) {
+                    removeBookmark(bookmark.id);
+                    return;
+                  }
+
+                  addBookmark({
+                    id: `${item.id}-${Date.now()}`,
+                    url: item.url,
+                    title: item.title,
+                    createdAt: Date.now(),
+                  });
+                }}
+                accessibilityRole="button"
+                accessibilityLabel={
+                  bookmarks.some((bookmark) => bookmark.url === item.url)
+                    ? "Remove bookmark"
+                    : "Bookmark tab"
+                }
+                hitSlop={8}
+                style={styles.bookmarkButton}
+              >
+                <HugeiconsIcon
+                  icon={Bookmark01Icon}
+                  size={20}
+                  color={
+                    bookmarks.some((bookmark) => bookmark.url === item.url)
+                      ? "#B7A5FF"
+                      : "#FFFFFF"
+                  }
+                />
               </Pressable>
 
               <Pressable
@@ -143,6 +184,14 @@ const styles = StyleSheet.create({
     marginLeft: 12,
     borderRadius: 10,
     backgroundColor: "#34202E",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  bookmarkButton: {
+    width: 32,
+    height: 32,
+    marginLeft: 8,
+    borderRadius: 10,
     alignItems: "center",
     justifyContent: "center",
   },

@@ -1,36 +1,30 @@
 import {
+  TextField,
   Host,
+  TextFieldRef,
+  useNativeState,
   OutlinedTextField,
   Text,
-  useNativeState,
 } from "@expo/ui/jetpack-compose";
-
+import type { ModifierConfig as AndroidModifierConfig } from "@expo/ui/jetpack-compose/modifiers";
 import {
-  padding,
-  type ModifierConfig as AndroidModifierConfig,
-} from "@expo/ui/jetpack-compose/modifiers";
-
-import type { ModifierConfig as IOSModifierConfig } from "@expo/ui/swift-ui/modifiers";
-
-import { useEffect } from "react";
+  onSubmit,
+  type ModifierConfig as IOSModifierConfig,
+} from "@expo/ui/swift-ui/modifiers";
+import { useCallback, useEffect, useRef } from "react";
+import type { KeyboardType, ReturnKeyType } from "react-native";
 
 export type TextInputProps = {
-  value?: string;
-  defaultValue?: string;
-  onChangeText?: (value: string) => void;
-  onSubmitEditing?: (event: { nativeEvent: { text: string } }) => void;
-  onFocus?: (focused: boolean) => void;
+  placeholder: string;
+  value: string;
+  defaultValue: string;
+  disabled: boolean;
 
-  placeholder?: string;
-  placeholderTextColor?: string;
-  disabled?: boolean;
-  autoFocus?: boolean;
-  autoCorrect?: boolean;
-  keyboardType?: string;
-  returnKeyType?: string;
-  selectTextOnFocus?: boolean;
-  accessibilityLabel?: string;
-  autoCapitalize?: "none" | "sentences" | "words" | "characters";
+  keyboardType: KeyboardType;
+  returnKeyType: ReturnKeyType;
+
+  onChangeText: (s: string) => void;
+  onSubmitEditing?: (event: { nativeEvent: { text: string } }) => void;
 
   uiModifiers?: {
     ios?: IOSModifierConfig[];
@@ -39,23 +33,16 @@ export type TextInputProps = {
 };
 
 export default function TextInput({
+  placeholder,
   value,
   defaultValue = "",
+  disabled = false,
+  returnKeyType,
   onChangeText,
   onSubmitEditing,
-  onFocus,
-  placeholder,
-  placeholderTextColor,
-  disabled = false,
-  autoFocus = false,
-  autoCorrect = true,
-  keyboardType = "default",
-  returnKeyType = "default",
-  selectTextOnFocus = false,
-  accessibilityLabel,
-  autoCapitalize = "none",
   uiModifiers,
 }: TextInputProps) {
+  const textRef = useRef<TextFieldRef>(null);
   const text = useNativeState(value ?? defaultValue);
   const selection = useNativeState({ start: 0, end: 0 });
 
@@ -65,90 +52,45 @@ export default function TextInput({
     }
   }, [value, text]);
 
-  const handleSubmit = (submittedText: string) => {
-    onSubmitEditing?.({
-      nativeEvent: { text: submittedText },
-    });
-  };
+  const handValueChange = useCallback(
+    (next: string) => {
+      onChangeText?.(next);
 
-  const handleFocus = (focused: boolean) => {
-    if (focused && selectTextOnFocus) {
-      selection.value = {
-        start: 0,
-        end: text.value.length,
-      };
-    }
+      if (value !== undefined && next !== value) {
+        text.value = value;
+      }
+    },
+    [onChangeText, text, value],
+  );
 
-    onFocus?.(focused);
-  };
-
-  const imeAction =
-    returnKeyType === "go"
-      ? "go"
-      : returnKeyType === "search"
-        ? "search"
-        : returnKeyType === "send"
-          ? "send"
-          : returnKeyType === "next"
-            ? "next"
-            : returnKeyType === "done"
-              ? "done"
-              : "default";
-
-  const nativeKeyboardType =
-    keyboardType === "web-search"
-      ? "uri"
-      : keyboardType === "url"
-        ? "uri"
-        : keyboardType === "email-address"
-          ? "email"
-          : keyboardType === "numeric"
-            ? "number"
-            : keyboardType === "phone-pad"
-              ? "phone"
-              : keyboardType === "decimal-pad"
-                ? "decimal"
-                : keyboardType === "visible-password"
-                  ? "password"
-                  : keyboardType === "ascii-capable"
-                    ? "ascii"
-                    : "text";
+  const handleSubmit = useCallback(
+    (v: string) => {
+      onSubmitEditing?.({
+        nativeEvent: { text: v },
+      });
+    },
+    [onSubmitEditing],
+  );
 
   return (
     <Host matchContents>
       <OutlinedTextField
-        value={text}
-        selection={selection}
         enabled={!disabled}
-        autoFocus={autoFocus}
+        ref={textRef}
+        value={text}
         singleLine
-        onValueChange={onChangeText}
-        onFocusChanged={handleFocus}
+        onValueChange={handValueChange}
         keyboardOptions={{
-          keyboardType: nativeKeyboardType,
-          imeAction,
-          autoCorrectEnabled: autoCorrect,
-          capitalization:
-            autoCapitalize === "characters"
-              ? "characters"
-              : autoCapitalize === "words"
-                ? "words"
-                : autoCapitalize === "sentences"
-                  ? "sentences"
-                  : "none",
+          keyboardType: "uri",
         }}
         keyboardActions={{
-          onGo: handleSubmit,
           onSearch: handleSubmit,
-          onSend: handleSubmit,
-          onNext: handleSubmit,
-          onDone: handleSubmit,
         }}
-        modifiers={[...(uiModifiers?.android ?? [])]}
+        modifiers={uiModifiers?.android ?? []}
       >
         {placeholder ? (
           <OutlinedTextField.Placeholder>
-            <Text color={placeholderTextColor ?? "#888888"}>{placeholder}</Text>
+            <Text>{placeholder}</Text>
           </OutlinedTextField.Placeholder>
         ) : null}
       </OutlinedTextField>
