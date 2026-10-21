@@ -19,6 +19,12 @@ export type Bookmark = {
   createdAt: number;
 };
 
+export type Favourite = {
+  id: string;
+  url: string;
+  title: string;
+};
+
 export type HistoryEntry = {
   id: string;
   url: string;

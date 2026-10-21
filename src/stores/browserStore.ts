@@ -1,7 +1,12 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import type { BrowserTab, Bookmark, HistoryEntry } from "@/types/browser";
+import type {
+  BrowserTab,
+  Bookmark,
+  Favourite,
+  HistoryEntry,
+} from "@/types/browser";
 
 export const HOME_URL = "ion://home";
 
@@ -21,6 +26,7 @@ type BrowserStore = {
   activeTabId: string; // currently active/main tab it
   incognitoActiveTabId: string | null;
   bookmarks: Bookmark[]; // array of bookmarks
+  favourites: Favourite[];
   history: HistoryEntry[]; // array of history
   isIncognito: boolean;
 
@@ -31,6 +37,7 @@ type BrowserStore = {
   updateTab: (id: string, patch: Partial<BrowserTab>) => void;
   addBookmark: (item: Bookmark) => void;
   removeBookmark: (id: string) => void;
+  setFavourites: (items: Favourite[]) => void;
   addHistory: (item: HistoryEntry) => void;
   setIncognito: (value: boolean) => void;
 
@@ -49,6 +56,12 @@ export const useBrowserStore = create<BrowserStore>()(
       activeTabId: firstTab.id,
       incognitoActiveTabId: null,
       bookmarks: [],
+      favourites: [
+        { id: "youtube", title: "YouTube", url: "https://www.youtube.com" },
+        { id: "github", title: "GitHub", url: "https://github.com" },
+        { id: "reddit", title: "Reddit", url: "https://www.reddit.com" },
+        { id: "wikipedia", title: "Wikipedia", url: "https://www.wikipedia.org" },
+      ],
       history: [],
       isIncognito: false,
 
@@ -138,6 +151,8 @@ export const useBrowserStore = create<BrowserStore>()(
           bookmarks: state.bookmarks.filter((b) => b.id !== id),
         })),
 
+      setFavourites: (items) => set({ favourites: items }),
+
       addHistory: (item) =>
         set((state) => ({
           history: [
@@ -191,6 +206,7 @@ export const useBrowserStore = create<BrowserStore>()(
         })),
         activeTabId: state.activeTabId,
         bookmarks: state.bookmarks,
+        favourites: state.favourites,
         history: state.history,
       }),
 

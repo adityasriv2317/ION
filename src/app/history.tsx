@@ -8,7 +8,6 @@ import {
   useWindowDimensions,
   View,
 } from "react-native";
-import { Icon } from "@expo/ui";
 import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -17,15 +16,7 @@ import * as SwiftUI from "@expo/ui/swift-ui/modifiers";
 import { clearHistory, listHistory } from "@/db/history";
 import type { HistoryEntry } from "@/types/browser";
 import AdaptiveButton from "@/components/ui/button";
-
-const backIcon = Icon.select({
-  ios: "chevron.left",
-  android: import("@expo/material-symbols/arrow_back.xml"),
-});
-const deleteIcon = Icon.select({
-  ios: "trash",
-  android: import("@expo/material-symbols/delete.xml"),
-});
+import { SystemIcons } from "@/constants/icons";
 
 export default function HistoryScreen() {
   const router = useRouter();
@@ -89,7 +80,8 @@ export default function HistoryScreen() {
     <SafeAreaView style={styles.screen}>
       <View style={styles.header}>
         <AdaptiveButton
-          systemImage={backIcon}
+          label=""
+          systemImage={SystemIcons.arrowBack}
           onPressButton={() => router.back()}
           backgroundColor="#292747"
           textColor="#FFFFFF"
@@ -108,7 +100,8 @@ export default function HistoryScreen() {
         <Text style={styles.heading}>History</Text>
         {history.length > 0 && (
           <AdaptiveButton
-            systemImage={deleteIcon}
+            label=""
+            systemImage={SystemIcons.delete}
             onPressButton={handleClearHistory}
             disabled={isClearing || history.length === 0}
             backgroundColor="#34202E"

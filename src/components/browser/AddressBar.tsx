@@ -1,22 +1,12 @@
 import { useEffect, useState } from "react";
 import { View } from "react-native";
-import { Icon } from "@expo/ui";
-
 import AdaptiveButton from "@/components/ui/button";
+import { SystemIcons } from "@/constants/icons";
 
 import * as jetpack from "@expo/ui/jetpack-compose/modifiers";
 import { AddressBar as AB } from "@/components/ui/AddressBar";
 
 import * as SwiftUI from "@expo/ui/swift-ui/modifiers";
-
-const submitIcon = Icon.select({
-  ios: "arrow.up",
-  android: import("@expo/material-symbols/arrow_upward.xml"),
-});
-const reloadIcon = Icon.select({
-  ios: "arrow.clockwise",
-  android: import("@expo/material-symbols/refresh.xml"),
-});
 
 type Props = {
   value: string;
@@ -72,7 +62,10 @@ export default function AddressBar({
       />
 
       <AdaptiveButton
-        systemImage={showSubmitAction ? submitIcon : reloadIcon}
+        label=""
+        systemImage={
+          showSubmitAction ? SystemIcons.arrowUp : SystemIcons.reload
+        }
         onPressButton={showSubmitAction ? handleSubmit : () => onReload?.()}
         backgroundColor="#0240f800"
         textColor="#bbdcff"

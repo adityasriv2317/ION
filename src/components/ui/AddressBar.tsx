@@ -20,7 +20,7 @@ import {
 import { useEffect, useRef } from "react";
 import { StyleSheet, View } from "react-native";
 
-import clearIcon from "@expo/material-symbols/close.xml";
+import { SystemIcons } from "@/constants/icons";
 
 export interface AddressBarProps {
   value: string;
@@ -113,7 +113,7 @@ export function AddressBar({
 
           {value.length > 0 && !disabled && (
             <TextButton onClick={clear}>
-              <Icon name={clearIcon} size={18} color="#ffffff" />
+              <Icon name={SystemIcons.close} size={18} color="#ffffff" />
             </TextButton>
           )}
         </Row>

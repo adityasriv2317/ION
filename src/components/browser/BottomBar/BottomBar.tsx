@@ -1,13 +1,4 @@
 import { animationConfig, BottomBarState } from "@/constants/bottomBar";
-import {
-  Archive03Icon,
-  CancelCircleIcon,
-  CreditCardIcon,
-  Delete03Icon,
-  IncognitoIcon,
-  PlusSignIcon,
-  SearchAreaIcon,
-} from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import { MotiView, View } from "moti";
 import { useContext, useEffect, useRef, useState } from "react";
@@ -23,6 +14,7 @@ import { runOnJS } from "react-native-reanimated";
 
 import { BrowserContext } from "@/contexts/BrowserContext";
 import MenuBar from "./MenuBar";
+import { HugeIcons } from "@/constants/icons";
 
 export default function BottomBar() {
   const {
@@ -303,7 +295,7 @@ export default function BottomBar() {
                     style={styles.clearButton}
                   >
                     <HugeiconsIcon
-                      icon={CancelCircleIcon}
+                      icon={HugeIcons.cancelCircle}
                       size={24}
                       color="#fff"
                       strokeWidth={1.5}
@@ -348,7 +340,7 @@ export default function BottomBar() {
             >
               {/* HugeiconsIcon */}
               <HugeiconsIcon
-                icon={CreditCardIcon}
+                icon={HugeIcons.creditCard}
                 strokeWidth={2}
                 color={"#ddd"}
               />
@@ -391,7 +383,7 @@ export default function BottomBar() {
             {/* archive button */}
             <TouchableOpacity>
               <HugeiconsIcon
-                icon={Archive03Icon}
+                icon={HugeIcons.archive}
                 size={22}
                 color="#fff"
                 strokeWidth={1.5}
@@ -400,7 +392,7 @@ export default function BottomBar() {
             {/* search button */}
             <TouchableOpacity>
               <HugeiconsIcon
-                icon={SearchAreaIcon}
+                icon={HugeIcons.searchArea}
                 size={22}
                 color="#fff"
                 strokeWidth={1.5}
@@ -412,7 +404,7 @@ export default function BottomBar() {
           <View style={styles.tabActionClosePill}>
             <TouchableOpacity style={styles.deleteButtonTouchable}>
               <HugeiconsIcon
-                icon={Delete03Icon}
+                icon={HugeIcons.delete}
                 size={22}
                 color="#fff"
                 strokeWidth={1.5}
@@ -425,7 +417,7 @@ export default function BottomBar() {
             {/* new normal tab */}
             <TouchableOpacity>
               <HugeiconsIcon
-                icon={PlusSignIcon}
+                icon={HugeIcons.plus}
                 size={22}
                 color="#fff"
                 strokeWidth={1.5}
@@ -434,7 +426,7 @@ export default function BottomBar() {
             {/* new private tab */}
             <TouchableOpacity>
               <HugeiconsIcon
-                icon={IncognitoIcon}
+                icon={HugeIcons.incognito}
                 size={22}
                 color="#fff"
                 strokeWidth={1.5}

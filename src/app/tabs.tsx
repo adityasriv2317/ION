@@ -10,39 +10,11 @@ import { useRouter } from "expo-router";
 import { useBrowserStore } from "@/stores/browserStore";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { HugeiconsIcon } from "@hugeicons/react-native";
-import { Bookmark01Icon } from "@hugeicons/core-free-icons";
-import { Icon } from "@expo/ui";
 import AdaptiveButton from "@/components/ui/button";
+import { HugeIcons, SystemIcons } from "@/constants/icons";
 
 import * as SwiftUI from "@expo/ui/swift-ui/modifiers";
 import * as Jetpack from "@expo/ui/jetpack-compose/modifiers";
-
-const Icons = {
-  backIcon: Icon.select({
-    ios: "chevron.left",
-    android: import("@expo/material-symbols/arrow_back.xml"),
-  }),
-  bookmarkIcon: Icon.select({
-    ios: "bookmark",
-    android: import("@expo/material-symbols/bookmark.xml"),
-  }),
-  historyIcon: Icon.select({
-    ios: "clock.arrow.circlepath",
-    android: import("@expo/material-symbols/history.xml"),
-  }),
-  plusIcon: Icon.select({
-    ios: "plus",
-    android: import("@expo/material-symbols/add.xml"),
-  }),
-  incognito: Icon.select({
-    ios: "eye",
-    android: import("@expo/material-symbols/eyeglasses.xml"),
-  }),
-  incognitoOff: Icon.select({
-    ios: "eye.slash",
-    android: import("@expo/material-symbols/owl.xml"),
-  }),
-};
 
 const buttonUI = {
   ios: [
@@ -96,7 +68,7 @@ const getIncognitoButtonUI = (isIncognito: boolean) => ({
   ],
   android: [
     Jetpack.clip(Jetpack.Shapes.RoundedCorner(28)),
-    Jetpack.background(isIncognito ? "#7657E8" : "#292747"),
+    Jetpack.background(isIncognito ? "#7657E8" : "#3c3968"),
   ],
 });
 
@@ -123,7 +95,8 @@ export default function TabsScreen() {
     <SafeAreaView style={styles.screen}>
       <View style={styles.header}>
         <AdaptiveButton
-          systemImage={Icons.backIcon}
+          label=""
+          systemImage={SystemIcons.arrowBack}
           onPressButton={() => router.back()}
           backgroundColor="#292747"
           textColor="#FFFFFF"
@@ -203,7 +176,7 @@ export default function TabsScreen() {
                   style={styles.bookmarkButton}
                 >
                   <HugeiconsIcon
-                    icon={Bookmark01Icon}
+                    icon={HugeIcons.bookmark}
                     size={20}
                     color={isBookmarked ? "#B7A5FF" : "#FFFFFF"}
                   />
@@ -226,26 +199,32 @@ export default function TabsScreen() {
 
       <View style={styles.footer}>
         <AdaptiveButton
-          systemImage={isIncognito ? Icons.incognitoOff : Icons.incognito}
+          label=""
+          systemImage={
+            isIncognito ? SystemIcons.incognitoOff : SystemIcons.incognito
+          }
           uiModifiers={getIncognitoButtonUI(isIncognito)}
           onPressButton={() => setIncognito(!isIncognito)}
-          backgroundColor={isIncognito ? "#7657E8" : "#292747"}
+          backgroundColor="transparent"
           textColor="#FFFFFF"
         />
         <View style={styles.footerActions}>
           <AdaptiveButton
+            label=""
             uiModifiers={buttonUI}
-            systemImage={Icons.bookmarkIcon}
+            systemImage={SystemIcons.bookmark}
             onPressButton={() => router.push("/bookmarks")}
           />
           <AdaptiveButton
+            label=""
             uiModifiers={buttonUI}
-            systemImage={Icons.historyIcon}
+            systemImage={SystemIcons.history}
             onPressButton={() => router.push("/history")}
           />
           <AdaptiveButton
+            label=""
             uiModifiers={plusButtonUI}
-            systemImage={Icons.plusIcon}
+            systemImage={SystemIcons.add}
             onPressButton={() => {
               addTab();
               router.back();

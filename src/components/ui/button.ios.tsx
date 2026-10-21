@@ -33,7 +33,13 @@ export default function AdaptiveButton({
               name={systemImage}
               size={20}
               color="#ffffff"
-              modifiers={[padding({ horizontal: 12, vertical: 10 })]}
+              modifiers={[
+                padding(
+                  label === ""
+                    ? { horizontal: 12, vertical: 10 }
+                    : { leading: 10 },
+                ),
+              ]}
             />
           )}
           {label && (

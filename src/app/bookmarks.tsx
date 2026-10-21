@@ -7,20 +7,11 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Icon } from "@expo/ui";
 import * as SwiftUI from "@expo/ui/swift-ui/modifiers";
 
 import { useBrowserStore } from "@/stores/browserStore";
 import AdaptiveButton from "@/components/ui/button";
-
-const backIcon = Icon.select({
-  ios: "chevron.left",
-  android: import("@expo/material-symbols/arrow_back.xml"),
-});
-const deleteIcon = Icon.select({
-  ios: "trash",
-  android: import("@expo/material-symbols/delete.xml"),
-});
+import { SystemIcons } from "@/constants/icons";
 
 export default function BookmarksScreen() {
   const router = useRouter();
@@ -33,7 +24,8 @@ export default function BookmarksScreen() {
     <SafeAreaView style={styles.screen}>
       <View style={styles.header}>
         <AdaptiveButton
-          systemImage={backIcon}
+          label=""
+          systemImage={SystemIcons.arrowBack}
           onPressButton={() => router.back()}
           backgroundColor="#292747"
           textColor="#FFFFFF"
@@ -74,7 +66,8 @@ export default function BookmarksScreen() {
             </View>
             <View style={styles.cardActions}>
               <AdaptiveButton
-                systemImage={deleteIcon}
+                label=""
+                systemImage={SystemIcons.delete}
                 onPressButton={() => removeBookmark(item.id)}
                 backgroundColor="#34202E"
                 textColor="#F4A5B5"

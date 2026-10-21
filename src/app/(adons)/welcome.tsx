@@ -4,14 +4,9 @@ import { useRouter } from "expo-router";
 
 import { MotiText, MotiView, SafeAreaView } from "moti";
 import { HugeiconsIcon } from "@hugeicons/react-native";
-import {
-  ArrowRight01Icon,
-  Globe02Icon,
-  ZapIcon,
-  Rocket01Icon,
-} from "@hugeicons/core-free-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import HomeLiquid from "./HomeLiquid";
+import { HugeIcons } from "@/constants/icons";
 
 export default function Welcome() {
   const router = useRouter();
@@ -76,7 +71,7 @@ export default function Welcome() {
               >
                 {next === 1 && (
                   <HugeiconsIcon
-                    icon={Globe02Icon}
+                    icon={HugeIcons.globe}
                     size={52}
                     color="#1e293b"
                     strokeWidth={2}
@@ -84,7 +79,7 @@ export default function Welcome() {
                 )}
                 {next === 2 && (
                   <HugeiconsIcon
-                    icon={ZapIcon}
+                    icon={HugeIcons.zap}
                     size={52}
                     color="#224baa"
                     strokeWidth={2}
@@ -92,7 +87,7 @@ export default function Welcome() {
                 )}
                 {next === 3 && (
                   <HugeiconsIcon
-                    icon={Rocket01Icon}
+                    icon={HugeIcons.rocket}
                     size={52}
                     color="#a30ec1"
                     strokeWidth={2}
@@ -144,7 +139,7 @@ export default function Welcome() {
               style={styles.buttonInner}
             >
               <HugeiconsIcon
-                icon={ArrowRight01Icon}
+                icon={HugeIcons.arrowRight01}
                 size={24}
                 color="#222222"
                 strokeWidth={3.5}

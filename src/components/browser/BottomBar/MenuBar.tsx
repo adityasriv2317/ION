@@ -1,16 +1,9 @@
 import { HugeiconsIcon } from "@hugeicons/react-native";
-import {
-  Download04Icon,
-  RefreshIcon,
-  ArrowLeftIcon,
-  ArrowRightIcon,
-  Settings02Icon,
-  Bookmark01Icon,
-} from "@hugeicons/core-free-icons";
 import { Pressable, StyleSheet, View } from "react-native";
 import { useContext } from "react";
 import { BrowserContext } from "@/contexts/BrowserContext";
 import { router } from "expo-router";
+import { HugeIcons } from "@/constants/icons";
 
 export default function MenuBar() {
   const {
@@ -25,7 +18,7 @@ export default function MenuBar() {
   const menuItems = [
     {
       key: "back",
-      icon: ArrowLeftIcon,
+      icon: HugeIcons.arrowLeft,
       label: "Back",
       onPress: () => {
         if (canGoBack) {
@@ -40,7 +33,7 @@ export default function MenuBar() {
     },
     {
       key: "forward",
-      icon: ArrowRightIcon,
+      icon: HugeIcons.arrowRight,
       label: "Forward",
       onPress: () => {
         if (canGoForward) {
@@ -50,7 +43,7 @@ export default function MenuBar() {
     },
     {
       key: "refresh",
-      icon: RefreshIcon,
+      icon: HugeIcons.refresh,
       label: "Refresh",
       onPress: () => {
         if (webRef.current) {
@@ -60,19 +53,19 @@ export default function MenuBar() {
     },
     {
       key: "download",
-      icon: Download04Icon,
+      icon: HugeIcons.download,
       label: "Download",
       onPress: () => {},
     },
     {
       key: "bookmark",
-      icon: Bookmark01Icon,
+      icon: HugeIcons.bookmark,
       label: "Bookmark",
       onPress: () => {},
     },
     {
       key: "settings",
-      icon: Settings02Icon,
+      icon: HugeIcons.settings,
       label: "Settings",
       onPress: () => {
         router.push("/settings");

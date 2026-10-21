@@ -12,6 +12,7 @@ import {
   fixedSize,
   foregroundStyle,
   glassEffect,
+  keyboardType,
   lineLimit,
   onSubmit,
   padding,
@@ -56,7 +57,6 @@ export default function TextInput({
 
   const handleTextChange = useCallback(
     (nextText: string) => {
-      // Keep native observable state and parent state in sync.
       if (text.value !== nextText) {
         text.value = nextText;
       }
@@ -88,6 +88,7 @@ export default function TextInput({
   const fieldModifiers: IOSModifierConfig[] = [
     submitLabel("send"),
     onSubmit(handleSend),
+    keyboardType("web-search"),
     lineLimit({ min: 1, max: 5 }),
     fixedSize({ horizontal: false, vertical: true }),
     ...(disabled ? [disabledModifier(true)] : []),
