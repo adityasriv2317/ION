@@ -29,10 +29,12 @@ export function AddressBar({
   onSubmitEditing,
   placeholder = "Search or enter address",
   disabled = false,
+  onFocus,
+  onBlur,
 }: AddressBarProps) {
   const inputRef = useRef<TextFieldRef>(null);
   const text = useNativeState(value);
-  const [focused, setFocused] = useState(false);
+  const [isFocused, setIsFocused] = useState(false);
 
   useEffect(() => {
     if (text.value !== value) {
@@ -41,10 +43,8 @@ export function AddressBar({
   }, [value, text]);
 
   const clear = () => {
-    text.value = "";
     onChangeText("");
-    void inputRef.current?.clear();
-    void inputRef.current?.focus();
+    void inputRef.current?.clear().then(() => inputRef.current?.focus());
   };
 
   const submit = () => {
@@ -74,14 +74,23 @@ export function AddressBar({
             }),
           ]}
         >
-          <Image systemName="globe" color="secondary" size={18} />
+          {!isFocused && (
+            <Image systemName="globe" color="secondary" size={18} />
+          )}
 
           <TextField
             ref={inputRef}
             text={text}
             placeholder={placeholder}
             onTextChange={onChangeText}
-            onFocusChange={setFocused}
+            onFocusChange={(focused) => {
+              setIsFocused(focused);
+              if (focused) {
+                onFocus?.();
+              } else {
+                onBlur?.();
+              }
+            }}
             modifiers={[
               frame({ maxWidth: Infinity, width: 200 }),
               keyboardType("web-search"),
@@ -105,9 +114,8 @@ const styles = StyleSheet.create({
   wrapper: {
     width: "90%",
     alignSelf: "flex-start",
-    // maxWidth: 600,
   },
   host: {
-    width: "90%",
+    width: "100%",
   },
 });

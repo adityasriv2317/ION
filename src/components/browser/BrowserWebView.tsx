@@ -21,18 +21,6 @@ type Props = {
   url: string;
   onRef?: (ref: WebViewType | null) => void;
   onSwipeBackToHome?: () => void;
-  // addressBarProp: {
-  //   value: string;
-  //   onSubmit: (i: string) => {};
-  // };
-  // toolBarProp: {
-  //   tabCount: number;
-  //   onBack: () => {};
-  //   onTabs: () => {};
-  //   onForward: () => {};
-  //   onReload: () => {};
-  //   onHome: () => {};
-  // };
 };
 
 export default function BrowserWebView({
@@ -40,15 +28,16 @@ export default function BrowserWebView({
   url,
   onRef,
   onSwipeBackToHome,
-  // addressBarProp,
-  // toolBarProp,
 }: Props) {
   const ref = useRef<WebViewType>(null);
   const pendingNavigationUrl = useRef<string | null>(null);
   const lastRecordedUrl = useRef<string | null>(null);
   const updateTab = useBrowserStore((s) => s.updateTab);
   const canGoBack = useBrowserStore(
-    (s) => s.tabs.find((t) => t.id === tabId)?.canGoBack ?? false,
+    (s) =>
+      (s.isIncognito ? s.incognitoTabs : s.tabs).find(
+        (t) => t.id === tabId,
+      )?.canGoBack ?? false,
   );
 
   const onNavigationStateChange = (nav: WebViewNavigation) => {
@@ -76,6 +65,10 @@ export default function BrowserWebView({
     }
 
     lastRecordedUrl.current = nav.url;
+    if (useBrowserStore.getState().isIncognito) {
+      return;
+    }
+
     void recordVisit({
       id: createHistoryId(),
       url: nav.url,
@@ -120,17 +113,10 @@ export default function BrowserWebView({
         startInLoadingState
         pullToRefreshEnabled
         allowsBackForwardNavigationGestures={true}
+        scrollEnabled
         renderLoading={() => (
           <View
             style={{
-              // StyleSheet.absoluteFillObject,
-              // flex: 1,
-              // alignItems: "center",
-              // justifyContent: "center",
-              // backgroundColor: "transparent",
-              // justifyContent: "center",
-              // alignItems: "center",
-              // zIndex: 10,
               ...StyleSheet.absoluteFill,
               alignItems: "center",
               justifyContent: "center",

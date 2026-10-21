@@ -1,15 +1,26 @@
-import { Host, Row, TextField, useNativeState } from "@expo/ui/jetpack-compose";
-
+import { Icon } from "@expo/ui";
+import {
+  Host,
+  TextField,
+  Row,
+  Text,
+  TextButton,
+  useNativeState,
+  type TextFieldRef,
+} from "@expo/ui/jetpack-compose";
 import {
   background,
+  blur,
   clip,
+  fillMaxWidth,
   padding,
   Shapes,
+  weight,
 } from "@expo/ui/jetpack-compose/modifiers";
-
-import Button from "@/components/ui/button";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { StyleSheet, View } from "react-native";
+
+import clearIcon from "@expo/material-symbols/close.xml";
 
 export interface AddressBarProps {
   value: string;
@@ -18,14 +29,20 @@ export interface AddressBarProps {
   placeholder?: string;
   disabled?: boolean;
   autoFocus?: boolean;
+  onFocus?: () => void;
+  onBlur?: () => void;
 }
 
 export function AddressBar({
   value,
   onChangeText,
   onSubmitEditing,
+  placeholder = "Search or enter address",
   disabled = false,
+  onFocus,
+  onBlur,
 }: AddressBarProps) {
+  const inputRef = useRef<TextFieldRef>(null);
   const text = useNativeState(value);
 
   useEffect(() => {
@@ -33,13 +50,13 @@ export function AddressBar({
   }, [value, text]);
 
   const clear = () => {
-    text.value = "";
     onChangeText("");
+    void inputRef.current?.clear().then(() => inputRef.current?.focus());
   };
 
-  const submit = (query: string) => {
-    const trimmed = query.trim();
-    if (trimmed) onSubmitEditing(trimmed);
+  const submit = () => {
+    const query = text.value.trim();
+    if (query) onSubmitEditing(query);
   };
 
   return (
@@ -52,12 +69,15 @@ export function AddressBar({
         <Row
           verticalAlignment="center"
           modifiers={[
-            clip(Shapes.RoundedCorner(28)),
-            background("#24262C"),
-            padding(14, 14, 14, 14),
+            fillMaxWidth(),
+            clip(Shapes.RoundedCorner(36)),
+            background("#24262cdd"),
+            padding(2, 2, 2, 2),
+            // blur(2),
           ]}
         >
           <TextField
+            ref={inputRef}
             value={text}
             enabled={!disabled}
             singleLine
@@ -68,14 +88,33 @@ export function AddressBar({
               autoCorrectEnabled: false,
               imeAction: "go",
             }}
+            colors={{
+              focusedIndicatorColor: "transparent",
+              unfocusedIndicatorColor: "transparent",
+              disabledIndicatorColor: "transparent",
+            }}
             keyboardActions={{
               onGo: submit,
               onSearch: submit,
             }}
-          />
+            onFocusChanged={(focused) => {
+              if (focused) {
+                onFocus?.();
+              } else {
+                onBlur?.();
+              }
+            }}
+            modifiers={[weight(1), clip(Shapes.RoundedCorner(32))]}
+          >
+            <TextField.Placeholder>
+              <Text>{placeholder}</Text>
+            </TextField.Placeholder>
+          </TextField>
 
-          {value.length > 0 && (
-            <Button label="×" onPress={clear} disabled={disabled} />
+          {value.length > 0 && !disabled && (
+            <TextButton onClick={clear}>
+              <Icon name={clearIcon} size={18} color="#ffffff" />
+            </TextButton>
           )}
         </Row>
       </Host>
@@ -85,7 +124,9 @@ export function AddressBar({
 
 const styles = StyleSheet.create({
   wrapper: {
-    width: "100%",
+    width: "80%",
+    alignSelf: "flex-start",
+    marginVertical: "auto",
   },
   host: {
     width: "100%",

@@ -3,19 +3,29 @@ import {
   ActivityIndicator,
   Alert,
   FlatList,
-  Pressable,
   StyleSheet,
   Text,
+  useWindowDimensions,
   View,
 } from "react-native";
-import { HugeiconsIcon } from "@hugeicons/react-native";
-import { Delete02Icon, Loading02Icon } from "@hugeicons/core-free-icons";
+import { Icon } from "@expo/ui";
 import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import * as SwiftUI from "@expo/ui/swift-ui/modifiers";
+
 import { clearHistory, listHistory } from "@/db/history";
 import type { HistoryEntry } from "@/types/browser";
-import ArrowLeft01Icon from "@hugeicons/core-free-icons/ArrowLeft01Icon";
+import AdaptiveButton from "@/components/ui/button";
+
+const backIcon = Icon.select({
+  ios: "chevron.left",
+  android: import("@expo/material-symbols/arrow_back.xml"),
+});
+const deleteIcon = Icon.select({
+  ios: "trash",
+  android: import("@expo/material-symbols/delete.xml"),
+});
 
 export default function HistoryScreen() {
   const router = useRouter();
@@ -23,6 +33,8 @@ export default function HistoryScreen() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isClearing, setIsClearing] = useState(false);
+  const { width } = useWindowDimensions();
+  const columns = width >= 700 ? 3 : 2;
 
   useEffect(() => {
     let isMounted = true;
@@ -76,30 +88,45 @@ export default function HistoryScreen() {
   return (
     <SafeAreaView style={styles.screen}>
       <View style={styles.header}>
-        <Pressable
-          onPress={() => router.back()}
-          hitSlop={10}
-          accessibilityRole="button"
-          accessibilityLabel="Go back"
-        >
-          <HugeiconsIcon icon={ArrowLeft01Icon} size={24} color="#FFFFFF" />
-        </Pressable>
+        <AdaptiveButton
+          systemImage={backIcon}
+          onPressButton={() => router.back()}
+          backgroundColor="#292747"
+          textColor="#FFFFFF"
+          uiModifiers={{
+            ios: [
+              SwiftUI.glassEffect({
+                glass: {
+                  variant: "clear",
+                  interactive: true,
+                },
+                shape: "circle",
+              }),
+            ],
+          }}
+        />
         <Text style={styles.heading}>History</Text>
         {history.length > 0 && (
-          <Pressable
-            onPress={handleClearHistory}
+          <AdaptiveButton
+            systemImage={deleteIcon}
+            onPressButton={handleClearHistory}
             disabled={isClearing || history.length === 0}
-            accessibilityRole="button"
-            accessibilityLabel="Clear history"
-            style={styles.clearButton}
-          >
-            {isClearing ? (
-              <HugeiconsIcon icon={Loading02Icon} size={24} color="#FFFFFF" />
-            ) : (
-              <HugeiconsIcon icon={Delete02Icon} size={24} color="#FFFFFF" />
-            )}
-          </Pressable>
+            backgroundColor="#34202E"
+            textColor="#F4A5B5"
+            uiModifiers={{
+              ios: [
+                SwiftUI.glassEffect({
+                  glass: {
+                    variant: "clear",
+                    interactive: true,
+                  },
+                  shape: "circle",
+                }),
+              ],
+            }}
+          />
         )}
+        {history.length === 0 && <View style={styles.headerSpacer} />}
       </View>
 
       {isLoading ? (
@@ -109,10 +136,12 @@ export default function HistoryScreen() {
       ) : (
         <FlatList
           data={history}
+          numColumns={columns}
           keyExtractor={(item) => item.id}
           contentContainerStyle={
             history.length === 0 ? styles.emptyList : styles.list
           }
+          columnWrapperStyle={columns > 1 ? styles.column : undefined}
           showsVerticalScrollIndicator={false}
           renderItem={({ item }) => (
             <View style={styles.card}>
@@ -140,43 +169,30 @@ const styles = StyleSheet.create({
   screen: {
     flex: 1,
     backgroundColor: "#111121",
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
+    paddingTop: 6,
   },
   header: {
     flexDirection: "row",
     alignItems: "center",
-    paddingTop: 12,
-    paddingBottom: 20,
-  },
-  back: {
-    color: "#FFFFFF",
-    fontSize: 36,
-    fontWeight: "300",
-    lineHeight: 36,
-    width: 32,
+    minHeight: 56,
+    marginBottom: 8,
   },
   heading: {
     flex: 1,
     color: "#FFFFFF",
     fontSize: 24,
     fontWeight: "700",
-    marginLeft: 8,
+    marginLeft: 12,
   },
-  clearButton: {
-    minWidth: 52,
-    alignItems: "flex-end",
-    paddingVertical: 8,
-  },
-  clearText: {
-    color: "#B7A5FF",
-    fontSize: 14,
-    fontWeight: "600",
-  },
-  disabledText: {
-    color: "#5F5F73",
+  headerSpacer: {
+    width: 72,
   },
   list: {
-    paddingBottom: 16,
+    paddingBottom: 24,
+  },
+  column: {
+    gap: 12,
   },
   emptyList: {
     flexGrow: 1,
@@ -185,26 +201,29 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: "#1B1B2D",
     borderColor: "#29293B",
-    borderRadius: 14,
+    borderRadius: 18,
     borderWidth: 1,
-    marginBottom: 10,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
+    flex: 1,
+    minHeight: 154,
+    marginBottom: 12,
+    padding: 14,
   },
   title: {
     color: "#FFFFFF",
-    fontSize: 15,
+    fontSize: 16,
+    lineHeight: 21,
     fontWeight: "600",
     marginBottom: 5,
   },
   url: {
-    color: "#9D9DB2",
-    fontSize: 13,
+    color: "#77778D",
+    fontSize: 11,
+    marginTop: 8,
   },
   date: {
     color: "#77778E",
     fontSize: 12,
-    marginTop: 8,
+    marginTop: 12,
   },
   center: {
     flex: 1,

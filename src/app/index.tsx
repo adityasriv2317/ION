@@ -19,15 +19,18 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import WebView from "react-native-webview";
 
 import HomePage from "@/components/HomePage";
-import { hidden } from "@expo/ui/swift-ui/modifiers";
 
 export default function BrowserScreen() {
   const router = useRouter();
   const webRef = useRef<WebView>(null);
   const webViewsRef = useRef(new Map<string, WebViewType>());
 
-  const tabs = useBrowserStore((s) => s.tabs);
-  const activeTabId = useBrowserStore((s) => s.activeTabId);
+  const tabs = useBrowserStore((s) =>
+    s.isIncognito ? s.incognitoTabs : s.tabs,
+  );
+  const activeTabId = useBrowserStore((s) =>
+    s.isIncognito ? s.incognitoActiveTabId : s.activeTabId,
+  );
   const updateTab = useBrowserStore((s) => s.updateTab);
 
   const hasHydrated = useBrowserStore((s) => s.hasHydrated);
@@ -80,10 +83,10 @@ export default function BrowserScreen() {
     return true;
   }, [activeTab, navigate]);
 
-  useEffect(() => {
-    const subs = BackHandler.addEventListener("hardwareBackPress", handleBack);
-    return () => subs.remove();
-  }, [handleBack]);
+  // useEffect(() => {
+  //   const subs = BackHandler.addEventListener("hardwareBackPress", handleBack);
+  //   return () => subs.remove();
+  // }, [handleBack]);
 
   if (!hasHydrated) {
     return (
@@ -155,7 +158,12 @@ export default function BrowserScreen() {
                     width: "100%",
                   }}
                 >
-                  <AddressBar value={activeTab.url} onSubmit={navigate} />
+                  <AddressBar
+                    value={activeTab.url}
+                    onSubmit={navigate}
+                    isLoading={activeTab.isLoading}
+                    onReload={() => activeWebView?.reload()}
+                  />
                   <BrowserToolbar
                     canGoBack={true}
                     canGoForward={activeTab.canGoForward}

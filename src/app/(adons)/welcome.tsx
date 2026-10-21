@@ -129,10 +129,9 @@ export default function Welcome() {
               if (next < 3) {
                 setNext((prev) => prev + 1);
               } else {
-                // router.replace("/(adons)/welcome");
                 await AsyncStorage.setItem("welcomeScreenShown", "true");
                 router.replace("/");
-                setNext(0); // Prevents incrementing beyond 3
+                setNext(0);
               }
             }}
           >

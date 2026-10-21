@@ -12,6 +12,7 @@ import AddressBar from "@/components/browser/AddressBar";
 
 import AdaptiveButton from "@/components/ui/button";
 import * as SwiftUI from "@expo/ui/swift-ui/modifiers";
+import * as Jetpack from "@expo/ui/jetpack-compose/modifiers";
 
 type Props = {
   onNavigate: (url: string) => void;
@@ -52,7 +53,7 @@ export default function HomePage({ onNavigate }: Props) {
         <View style={styles.tabsButton}>
           <AdaptiveButton
             label="Tabs"
-            onPress={() => router.push("/tabs")}
+            onPressButton={() => router.push("/tabs")}
             uiModifiers={{
               ios: [
                 SwiftUI.glassEffect({
@@ -63,7 +64,10 @@ export default function HomePage({ onNavigate }: Props) {
                   },
                 }),
               ],
+              android: [],
             }}
+            backgroundColor="#bc36ff"
+            textColor="#FFFFFF"
           />
         </View>
 

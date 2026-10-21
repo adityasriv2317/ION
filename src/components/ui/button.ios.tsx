@@ -1,27 +1,18 @@
 import { Button as NativeButton, Host, Text } from "@expo/ui/swift-ui";
+import { Icon } from "@expo/ui";
 import {
   disabled as disabledModifier,
   foregroundStyle,
   padding,
   type ModifierConfig as IOSModifierConfig,
   buttonStyle,
-  tint,
 } from "@expo/ui/swift-ui/modifiers";
-import type { ModifierConfig as AndroidModifierConfig } from "@expo/ui/jetpack-compose/modifiers";
-
-export type AdaptiveButtonProps = {
-  label: string;
-  onPress: () => void;
-  disabled?: boolean;
-  uiModifiers?: {
-    ios?: IOSModifierConfig[];
-    android?: AndroidModifierConfig[];
-  };
-};
+import type { AdaptiveButtonProps } from "./button";
 
 export default function AdaptiveButton({
   label,
-  onPress,
+  systemImage,
+  onPressButton,
   disabled = false,
   uiModifiers,
 }: AdaptiveButtonProps) {
@@ -33,14 +24,24 @@ export default function AdaptiveButton({
   return (
     <Host matchContents>
       <NativeButton
-        onPress={onPress}
+        onPress={onPressButton}
         modifiers={[...modifiers, buttonStyle("plain")]}
       >
-        {label ? (
-          <Text modifiers={[foregroundStyle("#ffffff"), padding({ all: 6 })]}>
-            {label}
-          </Text>
-        ) : undefined}
+        <>
+          {systemImage && (
+            <Icon
+              name={systemImage}
+              size={20}
+              color="#ffffff"
+              modifiers={[padding({ horizontal: 12, vertical: 10 })]}
+            />
+          )}
+          {label && (
+            <Text modifiers={[foregroundStyle("#ffffff"), padding({ all: 8 })]}>
+              {label}
+            </Text>
+          )}
+        </>
       </NativeButton>
     </Host>
   );

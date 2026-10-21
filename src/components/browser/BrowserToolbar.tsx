@@ -1,6 +1,10 @@
 import Button from "@/components/ui/button";
-import { View } from "react-native";
+import * as Jetpack from "@expo/ui/jetpack-compose/modifiers";
 import * as SwiftUI from "@expo/ui/swift-ui/modifiers";
+import { View } from "react-native";
+import { Icon } from "@expo/ui";
+
+import { Host } from "@expo/ui";
 
 type Props = {
   canGoBack: boolean;
@@ -12,31 +16,44 @@ type Props = {
   tabCount: number;
 };
 
+const prevIcon = Icon.select({
+  ios: "chevron.left",
+  android: import("@expo/material-symbols/arrow_back.xml"),
+});
+const forwIcon = Icon.select({
+  ios: "chevron.right",
+  android: import("@expo/material-symbols/arrow_forward.xml"),
+});
+
 export default function BrowserToolbar(props: Props) {
   const actions = [
-    ["Back", props.onBack, true],
-    ["Forward", props.onForward, props.canGoForward],
-    ["Reload", props.onReload, true],
-    [`${props.tabCount} Tabs`, props.onTabs, true],
+    [1, null, props.onBack, true, prevIcon],
+    [2, null, props.onForward, props.canGoForward, forwIcon],
+    [3, `${props.tabCount} Tabs`, props.onTabs, true],
   ] as const;
 
   return (
     <View
       style={{
         flexDirection: "row",
-        justifyContent: "space-around",
+        justifyContent: "center",
+        gap: 12,
         alignItems: "center",
         paddingTop: 10,
-        maxWidth: "90%",
+        width: "100%",
         marginHorizontal: "auto",
+        marginTop: -16,
       }}
     >
-      {actions.map(([label, action, enabled]) => (
+      {actions.map(([id, label, action, enabled, icon]) => (
         <Button
-          key={label}
-          onPress={action}
+          key={id}
+          onPressButton={action}
           disabled={!enabled}
-          label={label}
+          label={label !== null ? label : undefined}
+          textColor="#ffffff"
+          backgroundColor="#7153e0f0"
+          systemImage={label === null ? icon : undefined}
           uiModifiers={{
             ios: [
               SwiftUI.glassEffect({
@@ -45,22 +62,12 @@ export default function BrowserToolbar(props: Props) {
                   interactive: true,
                   tint: "#ffffff43",
                 },
-                // shape: "roundedRectangle",
-                // cornerRadius: 6
+                shape: "capsule",
               }),
-              SwiftUI.padding({ horizontal: 6 }),
+              SwiftUI.padding({ horizontal: 3 }),
             ],
+            android: [Jetpack.clip(Jetpack.Shapes.Circle)],
           }}
-          // style={{
-          //   backgroundColor: "#323268",
-          //   paddingVertical: 12,
-          //   paddingHorizontal: 12,
-          //   alignItems: "center",
-          //   minWidth: 40,
-          //   borderRadius: 32,
-          //   marginHorizontal: 4,
-          //   opacity: enabled ? 1 : 0.5,
-          // }}
         />
       ))}
     </View>

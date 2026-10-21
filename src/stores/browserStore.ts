@@ -17,9 +17,12 @@ const makeTab = (url = HOME_URL): BrowserTab => ({
 type BrowserStore = {
   // array of data
   tabs: BrowserTab[]; // stores the currently present tabs
+  incognitoTabs: BrowserTab[];
   activeTabId: string; // currently active/main tab it
+  incognitoActiveTabId: string | null;
   bookmarks: Bookmark[]; // array of bookmarks
   history: HistoryEntry[]; // array of history
+  isIncognito: boolean;
 
   // functions of the browser
   addTab: (url?: string) => string;
@@ -29,6 +32,7 @@ type BrowserStore = {
   addBookmark: (item: Bookmark) => void;
   removeBookmark: (id: string) => void;
   addHistory: (item: HistoryEntry) => void;
+  setIncognito: (value: boolean) => void;
 
   // data hydration - tracks whether saved state is restored or not
   hasHydrated: boolean;
@@ -41,49 +45,86 @@ export const useBrowserStore = create<BrowserStore>()(
   persist(
     (set, get) => ({
       tabs: [firstTab],
+      incognitoTabs: [],
       activeTabId: firstTab.id,
+      incognitoActiveTabId: null,
       bookmarks: [],
       history: [],
+      isIncognito: false,
 
       addTab: (url = HOME_URL) => {
         const tab = makeTab(url);
-        set((state) => ({
-          tabs: [...state.tabs, tab],
-          activeTabId: tab.id,
-        }));
+        set((state) =>
+          state.isIncognito
+            ? {
+                incognitoTabs: [...state.incognitoTabs, tab],
+                incognitoActiveTabId: tab.id,
+              }
+            : {
+                tabs: [...state.tabs, tab],
+                activeTabId: tab.id,
+              },
+        );
         return tab.id;
       },
 
       closeTab: (id) => {
         const state = get();
-        if (state.tabs.length <= 1) {
+        const currentTabs = state.isIncognito ? state.incognitoTabs : state.tabs;
+        if (currentTabs.length <= 1) {
           const replacement = makeTab(HOME_URL);
-          set({ tabs: [replacement], activeTabId: replacement.id });
+          set(
+            state.isIncognito
+              ? {
+                  incognitoTabs: [replacement],
+                  incognitoActiveTabId: replacement.id,
+                }
+              : { tabs: [replacement], activeTabId: replacement.id },
+          );
           return;
         }
 
-        const index = state.tabs.findIndex((tab) => tab.id === id);
-        const remaining = state.tabs.filter((tab) => tab.id !== id);
+        const index = currentTabs.findIndex((tab) => tab.id === id);
+        const remaining = currentTabs.filter((tab) => tab.id !== id);
+        const currentActiveTabId = state.isIncognito
+          ? state.incognitoActiveTabId
+          : state.activeTabId;
         const nextActive =
-          state.activeTabId === id
+          currentActiveTabId === id
             ? (remaining[Math.max(0, index - 1)] ?? remaining[0])
-            : (remaining.find((tab) => tab.id === state.activeTabId) ??
+            : (remaining.find((tab) => tab.id === currentActiveTabId) ??
               remaining[0]);
 
-        set({ tabs: remaining, activeTabId: nextActive.id });
+        set(
+          state.isIncognito
+            ? { incognitoTabs: remaining, incognitoActiveTabId: nextActive.id }
+            : { tabs: remaining, activeTabId: nextActive.id },
+        );
       },
 
       setActiveTab: (id) =>
-        set((state) =>
-          state.tabs.some((tab) => tab.id === id) ? { activeTabId: id } : state,
-        ),
+        set((state) => {
+          const currentTabs = state.isIncognito
+            ? state.incognitoTabs
+            : state.tabs;
+          if (!currentTabs.some((tab) => tab.id === id)) return state;
+          return state.isIncognito
+            ? { incognitoActiveTabId: id }
+            : { activeTabId: id };
+        }),
 
       updateTab: (id, patch) =>
-        set((state) => ({
-          tabs: state.tabs.map((tab) =>
+        set((state) => {
+          const currentTabs = state.isIncognito
+            ? state.incognitoTabs
+            : state.tabs;
+          const updatedTabs = currentTabs.map((tab) =>
             tab.id === id ? { ...tab, ...patch } : tab,
-          ),
-        })),
+          );
+          return state.isIncognito
+            ? { incognitoTabs: updatedTabs }
+            : { tabs: updatedTabs };
+        }),
 
       addBookmark: (item) =>
         set((state) =>
@@ -104,6 +145,32 @@ export const useBrowserStore = create<BrowserStore>()(
             ...state.history.filter((h) => h.url !== item.url),
           ].slice(0, 500),
         })),
+
+      setIncognito: (value) =>
+        set((state) => {
+          if (value === state.isIncognito) return state;
+
+          if (value) {
+            const firstIncognitoTab = makeTab(HOME_URL);
+            return {
+              isIncognito: true,
+              incognitoTabs: [firstIncognitoTab],
+              incognitoActiveTabId: firstIncognitoTab.id,
+            };
+          }
+
+          const regularActiveTab =
+            state.tabs.find((tab) => tab.id === state.activeTabId) ??
+            state.tabs[0] ??
+            makeTab(HOME_URL);
+          return {
+            isIncognito: false,
+            incognitoTabs: [],
+            incognitoActiveTabId: null,
+            tabs: state.tabs.length > 0 ? state.tabs : [regularActiveTab],
+            activeTabId: regularActiveTab.id,
+          };
+        }),
 
       hasHydrated: false,
       setHasHydrated: (value) => {

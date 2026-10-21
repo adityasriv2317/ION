@@ -1,32 +1,160 @@
-import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
+import {
+  FlatList,
+  Pressable,
+  StyleSheet,
+  Text,
+  useWindowDimensions,
+  View,
+} from "react-native";
 import { useRouter } from "expo-router";
 import { useBrowserStore } from "@/stores/browserStore";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { HugeiconsIcon } from "@hugeicons/react-native";
-import { Bookmark01Icon, HistoryIcon } from "@hugeicons/core-free-icons";
+import { Bookmark01Icon } from "@hugeicons/core-free-icons";
+import { Icon } from "@expo/ui";
+import AdaptiveButton from "@/components/ui/button";
+
+import * as SwiftUI from "@expo/ui/swift-ui/modifiers";
+import * as Jetpack from "@expo/ui/jetpack-compose/modifiers";
+
+const Icons = {
+  backIcon: Icon.select({
+    ios: "chevron.left",
+    android: import("@expo/material-symbols/arrow_back.xml"),
+  }),
+  bookmarkIcon: Icon.select({
+    ios: "bookmark",
+    android: import("@expo/material-symbols/bookmark.xml"),
+  }),
+  historyIcon: Icon.select({
+    ios: "clock.arrow.circlepath",
+    android: import("@expo/material-symbols/history.xml"),
+  }),
+  plusIcon: Icon.select({
+    ios: "plus",
+    android: import("@expo/material-symbols/add.xml"),
+  }),
+  incognito: Icon.select({
+    ios: "eye",
+    android: import("@expo/material-symbols/eyeglasses.xml"),
+  }),
+  incognitoOff: Icon.select({
+    ios: "eye.slash",
+    android: import("@expo/material-symbols/owl.xml"),
+  }),
+};
+
+const buttonUI = {
+  ios: [
+    SwiftUI.glassEffect({
+      glass: {
+        variant: "clear",
+        interactive: true,
+        tint: "#7657E8",
+      },
+      shape: "roundedRectangle",
+      cornerRadius: 12,
+    }),
+  ],
+  android: [Jetpack.clip(Jetpack.Shapes.RoundedCorner(16))],
+};
+
+const plusButtonUI = {
+  ios: [
+    SwiftUI.frame({
+      width: 48,
+      height: 48,
+    }),
+    SwiftUI.glassEffect({
+      glass: {
+        variant: "regular",
+        interactive: true,
+        tint: "#7657E8",
+      },
+      shape: "circle",
+    }),
+  ],
+  android: [
+    Jetpack.size(64, 64),
+    Jetpack.clip(Jetpack.Shapes.RoundedCorner(16)),
+    Jetpack.background("#7657E8"),
+  ],
+};
+
+const getIncognitoButtonUI = (isIncognito: boolean) => ({
+  ios: [
+    SwiftUI.buttonStyle("glass"),
+    SwiftUI.glassEffect({
+      glass: {
+        variant: "clear",
+        interactive: true,
+        tint: isIncognito ? "#7657E8" : "#292747",
+      },
+      shape: "capsule",
+    }),
+    SwiftUI.buttonBorderShape("capsule"),
+  ],
+  android: [
+    Jetpack.clip(Jetpack.Shapes.RoundedCorner(28)),
+    Jetpack.background(isIncognito ? "#7657E8" : "#292747"),
+  ],
+});
 
 export default function TabsScreen() {
   const router = useRouter();
-  const tabs = useBrowserStore((s) => s.tabs);
-  const activeTabId = useBrowserStore((s) => s.activeTabId);
+  const tabs = useBrowserStore((s) =>
+    s.isIncognito ? s.incognitoTabs : s.tabs,
+  );
+  const activeTabId = useBrowserStore((s) =>
+    s.isIncognito ? s.incognitoActiveTabId : s.activeTabId,
+  );
   const setActiveTab = useBrowserStore((s) => s.setActiveTab);
   const addTab = useBrowserStore((s) => s.addTab);
   const closeTab = useBrowserStore((s) => s.closeTab);
   const bookmarks = useBrowserStore((s) => s.bookmarks);
   const addBookmark = useBrowserStore((s) => s.addBookmark);
   const removeBookmark = useBrowserStore((s) => s.removeBookmark);
+  const isIncognito = useBrowserStore((s) => s.isIncognito);
+  const setIncognito = useBrowserStore((s) => s.setIncognito);
+  const { width } = useWindowDimensions();
+  const columns = width >= 700 ? 3 : 2;
 
   return (
     <SafeAreaView style={styles.screen}>
-      <Text style={styles.heading}>Tabs</Text>
+      <View style={styles.header}>
+        <AdaptiveButton
+          systemImage={Icons.backIcon}
+          onPressButton={() => router.back()}
+          backgroundColor="#292747"
+          textColor="#FFFFFF"
+          uiModifiers={{
+            ios: [
+              SwiftUI.glassEffect({
+                glass: {
+                  variant: "clear",
+                  interactive: true,
+                },
+                shape: "circle",
+              }),
+            ],
+          }}
+        />
+        <Text style={styles.heading}>Tabs</Text>
+        <View style={styles.headerSpacer} />
+      </View>
 
       <FlatList
         data={tabs}
+        numColumns={columns}
         keyExtractor={(item) => item.id}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.list}
+        columnWrapperStyle={columns > 1 ? styles.column : undefined}
         renderItem={({ item }) => {
           const isActive = item.id === activeTabId;
+          const isBookmarked = bookmarks.some(
+            (bookmark) => bookmark.url === item.url,
+          );
 
           return (
             <View style={[styles.tabCard, isActive && styles.activeTabCard]}>
@@ -38,97 +166,94 @@ export default function TabsScreen() {
                 style={styles.tabButton}
               >
                 <Text
-                  numberOfLines={1}
+                  numberOfLines={2}
                   style={[styles.tabTitle, isActive && styles.activeTabTitle]}
                 >
                   {item.title || "New Tab"}
                 </Text>
+                <Text numberOfLines={1} style={styles.tabUrl}>
+                  {item.url}
+                </Text>
               </Pressable>
 
-              <Pressable
-                onPress={() => {
-                  const bookmark = bookmarks.find(
-                    (bookmarkItem) => bookmarkItem.url === item.url,
-                  );
+              <View style={styles.cardActions}>
+                <Pressable
+                  onPress={() => {
+                    const bookmark = bookmarks.find(
+                      (bookmarkItem) => bookmarkItem.url === item.url,
+                    );
 
-                  if (bookmark) {
-                    removeBookmark(bookmark.id);
-                    return;
+                    if (bookmark) {
+                      removeBookmark(bookmark.id);
+                      return;
+                    }
+
+                    addBookmark({
+                      id: `${item.id}-${Date.now()}`,
+                      url: item.url,
+                      title: item.title,
+                      createdAt: Date.now(),
+                    });
+                  }}
+                  accessibilityRole="button"
+                  accessibilityLabel={
+                    isBookmarked ? "Remove bookmark" : "Bookmark tab"
                   }
+                  hitSlop={8}
+                  style={styles.bookmarkButton}
+                >
+                  <HugeiconsIcon
+                    icon={Bookmark01Icon}
+                    size={20}
+                    color={isBookmarked ? "#B7A5FF" : "#FFFFFF"}
+                  />
+                </Pressable>
 
-                  addBookmark({
-                    id: `${item.id}-${Date.now()}`,
-                    url: item.url,
-                    title: item.title,
-                    createdAt: Date.now(),
-                  });
-                }}
-                accessibilityRole="button"
-                accessibilityLabel={
-                  bookmarks.some((bookmark) => bookmark.url === item.url)
-                    ? "Remove bookmark"
-                    : "Bookmark tab"
-                }
-                hitSlop={8}
-                style={styles.bookmarkButton}
-              >
-                <HugeiconsIcon
-                  icon={Bookmark01Icon}
-                  size={20}
-                  color={
-                    bookmarks.some((bookmark) => bookmark.url === item.url)
-                      ? "#B7A5FF"
-                      : "#FFFFFF"
-                  }
-                />
-              </Pressable>
-
-              <Pressable
-                onPress={() => closeTab(item.id)}
-                accessibilityRole="button"
-                accessibilityLabel="Close tab"
-                hitSlop={8}
-                style={styles.closeButton}
-              >
-                <Text style={styles.closeText}>×</Text>
-              </Pressable>
+                <Pressable
+                  onPress={() => closeTab(item.id)}
+                  accessibilityRole="button"
+                  accessibilityLabel="Close tab"
+                  hitSlop={8}
+                  style={styles.closeButton}
+                >
+                  <Text style={styles.closeText}>×</Text>
+                </Pressable>
+              </View>
             </View>
           );
         }}
       />
 
       <View style={styles.footer}>
-        <Pressable
-          onPress={() => {
-            router.push("/history");
-          }}
-          accessibilityRole="button"
-          accessibilityLabel="History"
-          style={styles.utilButton}
-        >
-          <HugeiconsIcon icon={HistoryIcon} size={24} color="#FFFFFF" />
-        </Pressable>
-        <Pressable
-          onPress={() => {
-            router.push("/bookmarks");
-          }}
-          accessibilityRole="button"
-          accessibilityLabel="Bookmarks"
-          style={styles.utilButton}
-        >
-          <HugeiconsIcon icon={Bookmark01Icon} size={24} color="#FFFFFF" />
-        </Pressable>
-        <Pressable
-          onPress={() => {
-            addTab();
-            router.back();
-          }}
-          accessibilityRole="button"
-          accessibilityLabel="Add new tab"
-          style={styles.addButton}
-        >
-          <Text style={styles.addText}>+</Text>
-        </Pressable>
+        <AdaptiveButton
+          systemImage={isIncognito ? Icons.incognitoOff : Icons.incognito}
+          uiModifiers={getIncognitoButtonUI(isIncognito)}
+          onPressButton={() => setIncognito(!isIncognito)}
+          backgroundColor={isIncognito ? "#7657E8" : "#292747"}
+          textColor="#FFFFFF"
+        />
+        <View style={styles.footerActions}>
+          <AdaptiveButton
+            uiModifiers={buttonUI}
+            systemImage={Icons.bookmarkIcon}
+            onPressButton={() => router.push("/bookmarks")}
+          />
+          <AdaptiveButton
+            uiModifiers={buttonUI}
+            systemImage={Icons.historyIcon}
+            onPressButton={() => router.push("/history")}
+          />
+          <AdaptiveButton
+            uiModifiers={plusButtonUI}
+            systemImage={Icons.plusIcon}
+            onPressButton={() => {
+              addTab();
+              router.back();
+            }}
+            backgroundColor="#7657E8"
+            textColor="#ffffff"
+          />
+        </View>
       </View>
     </SafeAreaView>
   );
@@ -138,28 +263,41 @@ const styles = StyleSheet.create({
   screen: {
     flex: 1,
     backgroundColor: "#111121",
-    paddingHorizontal: 20,
-    paddingTop: 16,
+    paddingHorizontal: 16,
+    paddingTop: 6,
+  },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    minHeight: 56,
+    marginBottom: 8,
+  },
+  headerSpacer: {
+    width: 72,
   },
   heading: {
+    flex: 1,
     color: "white",
     fontSize: 24,
     fontWeight: "700",
-    marginBottom: 20,
+    marginLeft: 12,
   },
   list: {
-    paddingBottom: 16,
+    paddingBottom: 96,
+  },
+  column: {
+    gap: 12,
   },
   tabCard: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 16,
-    paddingHorizontal: 16,
-    marginBottom: 10,
-    borderRadius: 14,
+    flex: 1,
+    minHeight: 154,
+    padding: 14,
+    marginBottom: 12,
+    borderRadius: 18,
     backgroundColor: "#1B1B2D",
     borderWidth: 1,
     borderColor: "#29293B",
+    overflow: "hidden",
   },
   activeTabCard: {
     backgroundColor: "#292747",
@@ -167,21 +305,34 @@ const styles = StyleSheet.create({
   },
   tabButton: {
     flex: 1,
-    justifyContent: "center",
+    justifyContent: "flex-start",
+    paddingRight: 4,
   },
   tabTitle: {
     color: "#B5B5C7",
-    fontSize: 15,
-    fontWeight: "500",
+    fontSize: 16,
+    lineHeight: 21,
+    fontWeight: "600",
   },
   activeTabTitle: {
     color: "#FFFFFF",
     fontWeight: "600",
   },
+  tabUrl: {
+    color: "#77778D",
+    fontSize: 11,
+    marginTop: 8,
+  },
+  cardActions: {
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    alignItems: "center",
+    gap: 8,
+    marginTop: 12,
+  },
   closeButton: {
     width: 32,
     height: 32,
-    marginLeft: 12,
     borderRadius: 10,
     backgroundColor: "#34202E",
     alignItems: "center",
@@ -190,7 +341,6 @@ const styles = StyleSheet.create({
   bookmarkButton: {
     width: 32,
     height: 32,
-    marginLeft: 8,
     borderRadius: 10,
     alignItems: "center",
     justifyContent: "center",
@@ -203,9 +353,16 @@ const styles = StyleSheet.create({
   footer: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "flex-end",
-    paddingVertical: 10,
-    marginHorizontal: 16,
+    bottom: "5%",
+    justifyContent: "space-between",
+    left: 16,
+    position: "absolute",
+    right: 16,
+    zIndex: 2,
+  },
+  footerActions: {
+    alignItems: "center",
+    flexDirection: "row",
     gap: 8,
   },
   addButton: {
