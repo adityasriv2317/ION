@@ -1,44 +1,52 @@
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useRef } from "react";
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
   View,
-  BackHandler,
+  Pressable,
+  Keyboard,
 } from "react-native";
 import type { WebView as WebViewType } from "react-native-webview";
 
-import AddressBar from "@/components/browser/AddressBar";
-import BrowserToolbar from "@/components/browser/BrowserToolbar";
 import BrowserWebView from "@/components/browser/BrowserWebView";
 
 import { useBrowserStore, HOME_URL } from "@/stores/browserStore";
 import { resolveNavigationTarget } from "@/utils/resolveNavigationTarget";
 import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
-import WebView from "react-native-webview";
 
 import HomePage from "@/components/HomePage";
+import BottomBar from "@/components/browser/BottomBar";
+import { BrowserSessionProvider } from "@/components/browser/BrowserSessionContext";
+import {
+  useActiveTab,
+  useActiveTabId,
+  useHasHydrated,
+  useVisibleTabs,
+} from "@/stores/browserSelectors";
 
 export default function BrowserScreen() {
   const router = useRouter();
-  const webRef = useRef<WebView>(null);
   const webViewsRef = useRef(new Map<string, WebViewType>());
 
-  const tabs = useBrowserStore((s) =>
-    s.isIncognito ? s.incognitoTabs : s.tabs,
-  );
-  const activeTabId = useBrowserStore((s) =>
-    s.isIncognito ? s.incognitoActiveTabId : s.activeTabId,
-  );
+  const tabs = useVisibleTabs();
+  const activeTabId = useActiveTabId();
   const updateTab = useBrowserStore((s) => s.updateTab);
 
-  const hasHydrated = useBrowserStore((s) => s.hasHydrated);
-  const activeTab = tabs.find((t) => t.id === activeTabId) ?? tabs[0];
+  const hasHydrated = useHasHydrated();
+  const activeTab = useActiveTab();
 
-  const activeWebView = activeTab
-    ? webViewsRef.current.get(activeTab.id)
-    : undefined;
+  const setWebViewRef = useCallback(
+    (tabId: string, node: WebViewType | null) => {
+      if (node) {
+        webViewsRef.current.set(tabId, node);
+      } else {
+        webViewsRef.current.delete(tabId);
+      }
+    },
+    [],
+  );
 
   const navigate = useCallback(
     (input: string) => {
@@ -68,14 +76,14 @@ export default function BrowserScreen() {
         canGoForward: false,
       });
     },
-    [activeTab, activeTab.canGoBack, updateTab],
+    [activeTab, updateTab],
   );
 
   const handleBack = useCallback(() => {
     if (!activeTab || activeTab.url === HOME_URL) return false;
 
     if (activeTab.canGoBack) {
-      webRef.current?.goBack();
+      webViewsRef.current.get(activeTab.id)?.goBack();
     } else {
       navigate(HOME_URL);
     }
@@ -142,47 +150,40 @@ export default function BrowserScreen() {
                 <BrowserWebView
                   tabId={tab.id}
                   url={tab.url}
-                  onRef={(node) => {
-                    if (node) {
-                      webViewsRef.current.set(tab.id, node);
-                    } else {
-                      webViewsRef.current.delete(tab.id);
-                    }
-                  }}
+                  // onRef={(node) => {
+                  //   if (node) {
+                  //     webViewsRef.current.set(tab.id, node);
+                  //   } else {
+                  //     webViewsRef.current.delete(tab.id);
+                  //   }
+                  // }}
+                  onRef={(node) => setWebViewRef(tab.id, node)}
                 />
-                <View
-                  style={{
-                    flex: 1,
-                    position: "absolute",
-                    bottom: 32,
-                    width: "100%",
-                  }}
-                >
-                  <AddressBar
-                    value={activeTab.url}
-                    onSubmit={navigate}
-                    isLoading={activeTab.isLoading}
-                    onReload={() => activeWebView?.reload()}
-                  />
-                  <BrowserToolbar
-                    canGoBack={true}
-                    canGoForward={activeTab.canGoForward}
-                    onBack={() => {
-                      if (!activeTab.canGoBack) {
-                        navigate(HOME_URL);
-                        return;
-                      }
-                      activeWebView?.goBack();
-                    }}
-                    onForward={() => activeWebView?.goForward()}
-                    onReload={() => activeWebView?.reload()}
-                    onTabs={() => router.push("/tabs")}
-                    tabCount={tabs.length}
-                  />
-                </View>
               </View>
             ))}
           {activeTab.url === HOME_URL && <HomePage onNavigate={navigate} />}
+          {/* <Pressable
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+            }}
+            onPress={() => {
+              Keyboard.dismiss();
+            }}
+          /> */}
+          <BrowserSessionProvider
+            activeTab={activeTab}
+            tabCount={tabs.length}
+            webViewsRef={webViewsRef}
+            navigate={navigate}
+            goBack={handleBack}
+            openTabs={() => router.push("/tabs")}
+          >
+            <BottomBar />
+          </BrowserSessionProvider>
         </View>
       </KeyboardAvoidingView>
     </SafeAreaView>

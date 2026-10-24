@@ -219,13 +219,13 @@ export default function HomePage({ onNavigate }: Props) {
           />
         </View>
       </ScrollView>
-      <View
+      {/* <View
         style={{
           marginBottom: 20,
         }}
       >
         <AddressBar onSubmit={navigateToQuery} value="" />
-      </View>
+      </View> */}
     </View>
   );
 }

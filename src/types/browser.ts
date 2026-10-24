@@ -8,8 +8,8 @@ export type BrowserTab = {
   canGoBack: boolean;
   canGoForward: boolean;
 
-  lifecycle: TabLifecycle;
-  lastAccessed: number;
+  lifecycle?: TabLifecycle;
+  lastAccessed?: number;
 };
 
 export type Bookmark = {

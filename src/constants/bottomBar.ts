@@ -1,4 +1,19 @@
 // This file contains the animation configurations for the bottom bar in the IonBrowser app.
+
+export type BottomBarState =
+  | "home" //at home page
+  | "minimized" // idle/minimized
+  | "focused" // focused
+  | "editing"; // editing
+
+export type BottomBarEvent =
+  | { type: "FOCUS" }
+  | { type: "MINIMIZE" }
+  | { type: "EDIT_ADDRESS" }
+  | { type: "CANCEL_SEARCH" }
+  | { type: "NAVIGATE_HOME" }
+  | { type: "HOMEPAGE_CHANGED"; isHome: boolean };
+
 export const animationConfig = {
   tabView: {
     scale: 1.1,
@@ -30,7 +45,7 @@ export const animationConfig = {
   },
 };
 
-export type BottomBarState =
+export type BottomBarStates =
   | "minimizedState" // minimzed to show only only link
   | "normalState" // normal state with tabs and links
   | "openMenu" // open browser menu

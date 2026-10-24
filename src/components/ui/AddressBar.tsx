@@ -31,6 +31,7 @@ export interface AddressBarProps {
   autoFocus?: boolean;
   onFocus?: () => void;
   onBlur?: () => void;
+  isDisabled?: boolean;
 }
 
 export function AddressBar({
@@ -38,9 +39,10 @@ export function AddressBar({
   onChangeText,
   onSubmitEditing,
   placeholder = "Search or enter address",
-  disabled = false,
+  // disabled = false,
   onFocus,
   onBlur,
+  isDisabled,
 }: AddressBarProps) {
   const inputRef = useRef<TextFieldRef>(null);
   const text = useNativeState(value);
@@ -79,7 +81,7 @@ export function AddressBar({
           <TextField
             ref={inputRef}
             value={text}
-            enabled={!disabled}
+            enabled={!isDisabled}
             singleLine
             onValueChange={onChangeText}
             keyboardOptions={{
@@ -111,7 +113,7 @@ export function AddressBar({
             </TextField.Placeholder>
           </TextField>
 
-          {value.length > 0 && !disabled && (
+          {value.length > 0 && !isDisabled && (
             <TextButton onClick={clear}>
               <Icon name={SystemIcons.close} size={18} color="#ffffff" />
             </TextButton>

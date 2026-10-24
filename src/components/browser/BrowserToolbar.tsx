@@ -2,24 +2,16 @@ import Button from "@/components/ui/button";
 import * as Jetpack from "@expo/ui/jetpack-compose/modifiers";
 import * as SwiftUI from "@expo/ui/swift-ui/modifiers";
 import { View } from "react-native";
-import { Host } from "@expo/ui";
 import { SystemIcons } from "@/constants/icons";
+import { useBrowserSession } from "@/components/browser/BrowserSessionContext";
 
-type Props = {
-  canGoBack: boolean;
-  canGoForward: boolean;
-  onBack: () => void;
-  onForward: () => void;
-  onReload: () => void;
-  onTabs: () => void;
-  tabCount: number;
-};
-
-export default function BrowserToolbar(props: Props) {
+export default function BrowserToolbar() {
+  const { activeTab, tabCount, goBack, goForward, openTabs } =
+    useBrowserSession();
   const actions = [
-    [1, null, props.onBack, true, SystemIcons.arrowBack],
-    [2, null, props.onForward, props.canGoForward, SystemIcons.arrowForward],
-    [3, `${props.tabCount} Tabs`, props.onTabs, true],
+    [1, null, goBack, activeTab.canGoBack, SystemIcons.arrowBack],
+    [2, null, goForward, activeTab.canGoForward, SystemIcons.arrowForward],
+    [3, `${tabCount} Tabs`, openTabs, true],
   ] as const;
 
   return (

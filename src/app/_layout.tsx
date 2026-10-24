@@ -2,6 +2,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Stack, useRouter, type Href } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
 export default function RootLayout() {
@@ -22,20 +23,21 @@ export default function RootLayout() {
   return (
     <SafeAreaProvider>
       <StatusBar style="light" />
-
-      <Stack
-        screenOptions={{
-          headerShown: false,
-          contentStyle: {
-            backgroundColor: "#11111B",
-          },
-        }}
-      >
-        <Stack.Screen name="index" />
-        <Stack.Screen name="tabs" />
-        <Stack.Screen name="bookmarks" />
-        <Stack.Screen name="history" />
-      </Stack>
+      <GestureHandlerRootView>
+        <Stack
+          screenOptions={{
+            headerShown: false,
+            contentStyle: {
+              backgroundColor: "#11111B",
+            },
+          }}
+        >
+          <Stack.Screen name="index" />
+          <Stack.Screen name="tabs" />
+          <Stack.Screen name="bookmarks" />
+          <Stack.Screen name="history" />
+        </Stack>
+      </GestureHandlerRootView>
     </SafeAreaProvider>
   );
 }

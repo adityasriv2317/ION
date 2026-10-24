@@ -8,6 +8,10 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import { useBrowserStore } from "@/stores/browserStore";
+import {
+  useActiveTabId,
+  useVisibleTabs,
+} from "@/stores/browserSelectors";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import AdaptiveButton from "@/components/ui/button";
@@ -74,12 +78,8 @@ const getIncognitoButtonUI = (isIncognito: boolean) => ({
 
 export default function TabsScreen() {
   const router = useRouter();
-  const tabs = useBrowserStore((s) =>
-    s.isIncognito ? s.incognitoTabs : s.tabs,
-  );
-  const activeTabId = useBrowserStore((s) =>
-    s.isIncognito ? s.incognitoActiveTabId : s.activeTabId,
-  );
+  const tabs = useVisibleTabs();
+  const activeTabId = useActiveTabId();
   const setActiveTab = useBrowserStore((s) => s.setActiveTab);
   const addTab = useBrowserStore((s) => s.addTab);
   const closeTab = useBrowserStore((s) => s.closeTab);

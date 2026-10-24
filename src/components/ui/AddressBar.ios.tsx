@@ -17,6 +17,7 @@ import {
   onSubmit,
   padding,
   submitLabel,
+  disabled as disabledModifier,
 } from "@expo/ui/swift-ui/modifiers";
 
 import { useEffect, useRef, useState } from "react";
@@ -28,9 +29,9 @@ export function AddressBar({
   onChangeText,
   onSubmitEditing,
   placeholder = "Search or enter address",
-  disabled = false,
   onFocus,
   onBlur,
+  isDisabled
 }: AddressBarProps) {
   const inputRef = useRef<TextFieldRef>(null);
   const text = useNativeState(value);
@@ -96,10 +97,11 @@ export function AddressBar({
               keyboardType("web-search"),
               submitLabel("go"),
               onSubmit(submit),
+              disabledModifier(isDisabled),
             ]}
           />
 
-          {value.length > 0 && !disabled && (
+          {value.length > 0 && !isDisabled && (
             <Button onPress={clear} modifiers={[buttonStyle("plain")]}>
               <Text modifiers={[padding({ all: 2 })]}>X</Text>
             </Button>

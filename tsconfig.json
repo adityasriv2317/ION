@@ -3,18 +3,18 @@
   "compilerOptions": {
     "strict": true,
     "paths": {
-      "@/*": [
-        "./src/*"
-      ],
-      "@/assets/*": [
-        "./assets/*"
-      ]
-    }
+      "@/*": ["./src/*"],
+      "@/assets/*": ["./assets/*"]
+    },
+    "jsx": "react-jsx"
   },
   "include": [
     "**/*.ts",
     "**/*.tsx",
     ".expo/types/**/*.ts",
-    "expo-env.d.ts"
-,     "src/components/ui/button.ios.txt", "src/components/ui/textinput.txt", "src/components/ui/textinput.ios.txt"  ]
+    "expo-env.d.ts",
+    "src/components/ui/button.ios.txt",
+    "src/components/ui/textinput.txt",
+    "src/components/ui/textinput.ios.txt"
+  ]
 }

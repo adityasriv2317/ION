@@ -3,16 +3,28 @@ import { View } from "react-native";
 import AdaptiveButton from "@/components/ui/button";
 import { SystemIcons } from "@/constants/icons";
 
+import { HOME_URL } from "@/stores/browserStore";
+
 import * as jetpack from "@expo/ui/jetpack-compose/modifiers";
 import { AddressBar as AB } from "@/components/ui/AddressBar";
 
 import * as SwiftUI from "@expo/ui/swift-ui/modifiers";
 
-type Props = {
+import Animated, {
+  withTiming,
+  useAnimatedStyle,
+  withSpring,
+  useSharedValue,
+} from "react-native-reanimated";
+
+export type addressbarProps = {
   value: string;
   onSubmit: (value: string) => void;
   isLoading?: boolean;
   onReload?: () => void;
+  onFocus?: () => void;
+  editable?: boolean;
+  onBlur?: () => void;
 };
 
 export default function AddressBar({
@@ -20,11 +32,39 @@ export default function AddressBar({
   onSubmit,
   isLoading = false,
   onReload,
-}: Props) {
+  onFocus,
+  editable,
+  onBlur,
+}: addressbarProps) {
   const [text, setText] = useState(value);
   const [isEditing, setIsEditing] = useState(false);
 
-  useEffect(() => setText(value), [value]);
+  const BUTTON_WIDTH = 64;
+  const buttonProgress = useSharedValue(editable ? 1 : 0);
+
+  useEffect(() => {
+    buttonProgress.value = withSpring(editable ? 1 : 0, {
+      duration: 100,
+    });
+  }, [editable]);
+
+  const buttonStyle = useAnimatedStyle(() => ({
+    opacity: buttonProgress.value,
+    width: BUTTON_WIDTH * buttonProgress.value,
+    transform: [
+      {
+        translateX: (buttonProgress.value - 1) * 40,
+      },
+    ],
+  }));
+
+  useEffect(() => {
+    if (value === HOME_URL) {
+      setText("");
+      return;
+    }
+    setText(value);
+  }, [value]);
 
   const handleSubmit = () => {
     setIsEditing(false);
@@ -57,38 +97,56 @@ export default function AddressBar({
         onChangeText={setText}
         onSubmitEditing={handleSubmit}
         placeholder="Search or enter address"
-        onFocus={() => setIsEditing(true)}
-        onBlur={() => setIsEditing(false)}
+        onFocus={() => {
+          setIsEditing(true);
+          onFocus?.();
+        }}
+        onBlur={() => {
+          setIsEditing(false);
+          onBlur?.();
+        }}
+        isDisabled={!editable}
       />
 
-      <AdaptiveButton
-        label=""
-        systemImage={
-          showSubmitAction ? SystemIcons.arrowUp : SystemIcons.reload
-        }
-        onPressButton={showSubmitAction ? handleSubmit : () => onReload?.()}
-        backgroundColor="#0240f800"
-        textColor="#bbdcff"
-        uiModifiers={{
-          ios: [
-            SwiftUI.glassEffect({
-              glass: {
-                variant: "regular",
-                // variant: "identity",
-                interactive: true,
-                tint: "#158afe",
-              },
-              shape: "circle",
-            }),
-            SwiftUI.padding({ bottom: 3 }),
-          ],
-          android: [
-            jetpack.size(64, 64),
-            jetpack.clip(jetpack.Shapes.Circle),
-            jetpack.background("#0240f8e0"),
-          ],
-        }}
-      />
+      <Animated.View
+        style={[
+          buttonStyle,
+          {
+            alignItems: "center",
+            justifyContent: "center",
+          },
+        ]}
+        pointerEvents={editable ? "auto" : "none"}
+      >
+        <AdaptiveButton
+          label=""
+          systemImage={
+            showSubmitAction ? SystemIcons.arrowUp : SystemIcons.reload
+          }
+          onPressButton={showSubmitAction ? handleSubmit : () => onReload?.()}
+          backgroundColor="#0240f800"
+          textColor="#bbdcff"
+          uiModifiers={{
+            ios: [
+              SwiftUI.glassEffect({
+                glass: {
+                  variant: "regular",
+                  // variant: "identity",
+                  interactive: true,
+                  tint: "#158afe",
+                },
+                shape: "circle",
+              }),
+              SwiftUI.padding({ bottom: 3 }),
+            ],
+            android: [
+              jetpack.size(64, 64),
+              jetpack.clip(jetpack.Shapes.Circle),
+              jetpack.background("#0240f8e0"),
+            ],
+          }}
+        />
+      </Animated.View>
     </View>
   );
 }

@@ -1,72 +1,133 @@
-import React, { useState } from "react";
-import { View, Text, Image, TouchableOpacity, StyleSheet } from "react-native";
+import { useEffect, useState } from "react";
+import { View, Image, TouchableOpacity, StyleSheet } from "react-native";
 import { useRouter } from "expo-router";
-
-import { MotiText, MotiView, SafeAreaView } from "moti";
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withSpring,
+  withTiming,
+  FadeIn,
+  FadeOut,
+  ZoomIn,
+  ZoomOut,
+} from "react-native-reanimated";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import HomeLiquid from "./HomeLiquid";
 import { HugeIcons } from "@/constants/icons";
+import { SafeAreaView } from "react-native-safe-area-context";
+
+const SPRING_CONFIG = {
+  damping: 18,
+  stiffness: 160,
+};
 
 export default function Welcome() {
   const router = useRouter();
 
   const [next, setNext] = useState(0);
 
-  const [pressed, setPressed] = useState(false);
+  // Logo animation
+  const logoOpacity = useSharedValue(1);
+  const logoTranslateY = useSharedValue(0);
+
+  // Feature card animation
+  const cardOpacity = useSharedValue(0);
+  const cardTranslateY = useSharedValue(60);
+  const cardScale = useSharedValue(0.9);
+  const cardHeight = useSharedValue(0);
+
+  // Continue button press animation
+  const buttonScale = useSharedValue(1);
+
+  useEffect(() => {
+    const isWelcome = next === 0;
+
+    logoOpacity.value = withTiming(isWelcome ? 1 : 0, {
+      duration: 300,
+    });
+    logoTranslateY.value = withSpring(isWelcome ? 0 : -20, SPRING_CONFIG);
+
+    cardOpacity.value = withTiming(isWelcome ? 0 : 1, {
+      duration: 300,
+    });
+    cardTranslateY.value = withSpring(isWelcome ? 60 : 0, SPRING_CONFIG);
+    cardScale.value = withSpring(isWelcome ? 0.9 : 1, SPRING_CONFIG);
+    cardHeight.value = withSpring(isWelcome ? 0 : 350, {
+      ...SPRING_CONFIG,
+      damping: 22,
+    });
+  }, [
+    next,
+    logoOpacity,
+    logoTranslateY,
+    cardOpacity,
+    cardTranslateY,
+    cardScale,
+    cardHeight,
+  ]);
+
+  const logoAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: logoOpacity.value,
+    transform: [{ translateY: logoTranslateY.value }],
+  }));
+
+  const cardAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: cardOpacity.value,
+    height: cardHeight.value,
+    transform: [
+      { translateY: cardTranslateY.value },
+      { scale: cardScale.value },
+    ],
+  }));
+
+  const buttonAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: buttonScale.value }],
+  }));
+
+  const handleContinue = async () => {
+    if (next < 3) {
+      setNext((prev) => prev + 1);
+    } else {
+      await AsyncStorage.setItem("welcomeScreenShown", "true");
+      router.replace("/");
+      setNext(0);
+    }
+  };
 
   return (
     <SafeAreaView style={styles.safeAreaView}>
-      {/* background */}
+      {/* Background */}
       <HomeLiquid />
 
       <View style={styles.mainContainer}>
-        {/* icon and text */}
+        {/* Logo and text */}
         <View style={styles.iconsContainer}>
           <Image
             style={styles.logoImage}
             source={require("@/assets/images/icon.png")}
           />
-          <MotiText
-            from={{ opacity: 0, translateY: 0 }}
-            animate={{
-              opacity: next === 0 ? 1 : 0,
-              translateY: next === 0 ? 0 : -20,
-            }}
-            transition={{ type: "spring", duration: 350 }}
-            style={styles.logoText}
+
+          <Animated.Text
+            style={[styles.logoText, logoAnimatedStyle]}
             pointerEvents={next === 0 ? "auto" : "none"}
           >
             Ion Browser
-          </MotiText>
+          </Animated.Text>
         </View>
 
-        {/* features section */}
-        <MotiView
-          from={{ opacity: 0, translateY: 60, scale: 0.9, height: 50 }}
-          animate={{
-            opacity: next !== 0 ? 1 : 0,
-            translateY: next !== 0 ? 0 : 60,
-            scale: next !== 0 ? 1 : 0.9,
-            height: next !== 0 ? 350 : 0,
-          }}
-          transition={{
-            type: "spring",
-            height: { type: "spring", duration: 500, delay: 0 },
-          }}
-          style={[
-            styles.featuresCard,
-            { display: next === 0 ? "none" : "flex" },
-          ]}
+        {/* Features section */}
+        <Animated.View
+          pointerEvents={next === 0 ? "none" : "auto"}
+          style={[styles.featuresCard, cardAnimatedStyle]}
         >
           {next !== 0 && (
             <View style={styles.featuresContent}>
-              <MotiView
-                key={next}
-                from={{ scale: 0.8, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 0.8, opacity: 0 }}
-                transition={{ type: "spring", delay: 100 }}
+              {/* Feature icon */}
+              <Animated.View
+                key={`icon-${next}`}
+                entering={ZoomIn.duration(350)}
+                exiting={ZoomOut.duration(180)}
                 style={styles.featureIconContainer}
               >
                 {next === 1 && (
@@ -77,6 +138,7 @@ export default function Welcome() {
                     strokeWidth={2}
                   />
                 )}
+
                 {next === 2 && (
                   <HugeiconsIcon
                     icon={HugeIcons.zap}
@@ -85,6 +147,7 @@ export default function Welcome() {
                     strokeWidth={2}
                   />
                 )}
+
                 {next === 3 && (
                   <HugeiconsIcon
                     icon={HugeIcons.rocket}
@@ -93,58 +156,54 @@ export default function Welcome() {
                     strokeWidth={2}
                   />
                 )}
-              </MotiView>
-              <MotiText
-                from={{ opacity: 0, translateY: 40 }}
-                animate={{ opacity: 1, translateY: 0 }}
-                exit={{ opacity: 0, translateY: -40 }}
-                transition={{ type: "spring", duration: 800 }}
-                style={styles.featureTitle}
+              </Animated.View>
+
+              {/* Feature title */}
+              <Animated.Text
                 key={`title-${next}`}
+                entering={FadeIn.duration(350)}
+                exiting={FadeOut.duration(180)}
+                style={styles.featureTitle}
               >
-                {next == 1
+                {next === 1
                   ? "Hello Ion Browser!"
-                  : next == 2
+                  : next === 2
                     ? "Clean & Fast"
-                    : next == 3
+                    : next === 3
                       ? "Enhanced Browsing"
                       : ""}
-              </MotiText>
+              </Animated.Text>
             </View>
           )}
-        </MotiView>
+        </Animated.View>
 
-        {/* continue button */}
+        {/* Continue button */}
         <View style={styles.buttonWrapper}>
           <TouchableOpacity
+            activeOpacity={1}
             style={styles.touchableButton}
-            onPressIn={() => setPressed(true)}
-            onPressOut={() => setPressed(false)}
-            onPress={async () => {
-              if (next < 3) {
-                setNext((prev) => prev + 1);
-              } else {
-                await AsyncStorage.setItem("welcomeScreenShown", "true");
-                router.replace("/");
-                setNext(0);
-              }
+            onPressIn={() => {
+              buttonScale.value = withSpring(0.9, {
+                damping: 14,
+                stiffness: 250,
+              });
             }}
+            onPressOut={() => {
+              buttonScale.value = withSpring(1, {
+                damping: 12,
+                stiffness: 200,
+              });
+            }}
+            onPress={handleContinue}
           >
-            <MotiView
-              from={{ scale: 0.9 }}
-              animate={{ scale: pressed ? 0.9 : 1 }}
-              transition={{
-                type: "spring",
-              }}
-              style={styles.buttonInner}
-            >
+            <Animated.View style={[styles.buttonInner, buttonAnimatedStyle]}>
               <HugeiconsIcon
                 icon={HugeIcons.arrowRight01}
                 size={24}
                 color="#222222"
                 strokeWidth={3.5}
               />
-            </MotiView>
+            </Animated.View>
           </TouchableOpacity>
         </View>
       </View>
@@ -192,6 +251,7 @@ const styles = StyleSheet.create({
     marginBottom: 32,
     padding: 0,
     paddingBottom: 40,
+    overflow: "hidden",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.5,
@@ -243,7 +303,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-around",
     borderRadius: 9999,
-    // paddingHorizontal: 40,
     padding: 20,
     backgroundColor: "rgba(189, 204, 228, 0.25)",
     shadowColor: "rgba(26, 25, 25, 0.31)",
