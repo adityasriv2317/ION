@@ -60,7 +60,11 @@ export const useBrowserStore = create<BrowserStore>()(
         { id: "youtube", title: "YouTube", url: "https://www.youtube.com" },
         { id: "github", title: "GitHub", url: "https://github.com" },
         { id: "reddit", title: "Reddit", url: "https://www.reddit.com" },
-        { id: "wikipedia", title: "Wikipedia", url: "https://www.wikipedia.org" },
+        {
+          id: "wikipedia",
+          title: "Wikipedia",
+          url: "https://www.wikipedia.org",
+        },
       ],
       history: [],
       isIncognito: false,
@@ -83,7 +87,9 @@ export const useBrowserStore = create<BrowserStore>()(
 
       closeTab: (id) => {
         const state = get();
-        const currentTabs = state.isIncognito ? state.incognitoTabs : state.tabs;
+        const currentTabs = state.isIncognito
+          ? state.incognitoTabs
+          : state.tabs;
         if (currentTabs.length <= 1) {
           const replacement = makeTab(HOME_URL);
           set(
@@ -128,15 +134,23 @@ export const useBrowserStore = create<BrowserStore>()(
 
       updateTab: (id, patch) =>
         set((state) => {
-          const currentTabs = state.isIncognito
-            ? state.incognitoTabs
-            : state.tabs;
-          const updatedTabs = currentTabs.map((tab) =>
-            tab.id === id ? { ...tab, ...patch } : tab,
-          );
-          return state.isIncognito
-            ? { incognitoTabs: updatedTabs }
-            : { tabs: updatedTabs };
+          // Check if the tab exists in the normal tabs array
+          if (state.tabs.some((tab) => tab.id === id)) {
+            return {
+              tabs: state.tabs.map((tab) =>
+                tab.id === id ? { ...tab, ...patch } : tab,
+              ),
+            };
+          }
+          // Check if the tab exists in the incognito array
+          if (state.incognitoTabs.some((tab) => tab.id === id)) {
+            return {
+              incognitoTabs: state.incognitoTabs.map((tab) =>
+                tab.id === id ? { ...tab, ...patch } : tab,
+              ),
+            };
+          }
+          return state;
         }),
 
       addBookmark: (item) =>
@@ -166,22 +180,29 @@ export const useBrowserStore = create<BrowserStore>()(
           if (value === state.isIncognito) return state;
 
           if (value) {
-            const firstIncognitoTab = makeTab(HOME_URL);
+            // Restore existing session, or create a new one if empty
+            const hasExistingTabs = state.incognitoTabs.length > 0;
+            const initialTab = makeTab(HOME_URL);
+
             return {
               isIncognito: true,
-              incognitoTabs: [firstIncognitoTab],
-              incognitoActiveTabId: firstIncognitoTab.id,
+              incognitoTabs: hasExistingTabs
+                ? state.incognitoTabs
+                : [initialTab],
+              incognitoActiveTabId: hasExistingTabs
+                ? state.incognitoActiveTabId
+                : initialTab.id,
             };
           }
 
+          // Return to normal mode WITHOUT wiping the incognito background tabs
           const regularActiveTab =
             state.tabs.find((tab) => tab.id === state.activeTabId) ??
             state.tabs[0] ??
             makeTab(HOME_URL);
+
           return {
             isIncognito: false,
-            incognitoTabs: [],
-            incognitoActiveTabId: null,
             tabs: state.tabs.length > 0 ? state.tabs : [regularActiveTab],
             activeTabId: regularActiveTab.id,
           };

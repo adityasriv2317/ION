@@ -46,6 +46,10 @@ export const SystemIcons = {
     ios: "trash",
     android: import("@expo/material-symbols/delete.xml"),
   }),
+  done: Icon.select({
+    ios: "checkmark",
+    android: import("@expo/material-symbols/check.xml"),
+  }),
   edit: Icon.select({
     ios: "pencil",
     android: import("@expo/material-symbols/edit.xml"),
@@ -62,6 +66,10 @@ export const SystemIcons = {
     ios: "eye.slash",
     android: import("@expo/material-symbols/owl.xml"),
   }),
+  loading: Icon.select({
+    ios: "progress.indicator",
+    android: import("@expo/material-symbols/progress_activity.xml"),
+  }),
   reload: Icon.select({
     ios: "arrow.clockwise",
     android: import("@expo/material-symbols/refresh.xml"),
@@ -77,10 +85,6 @@ export const SystemIcons = {
   stack: Icon.select({
     ios: "square.on.square",
     android: import("@expo/material-symbols/stack.xml"),
-  }),
-  done: Icon.select({
-    ios: "checkmark",
-    android: import("@expo/material-symbols/check.xml"),
   }),
 } as const;
 

@@ -164,6 +164,12 @@ export default function HomePage({ onNavigate }: Props) {
                   keyboardType="default"
                   returnKeyType="next"
                   onChangeText={setTitle}
+                  uiModifiers={{
+                    android: [
+                      // Jetpack.fillMaxWidth(),
+                      Jetpack.matchParentSize(),
+                    ],
+                  }}
                 />
                 <TextInput
                   value={url}
@@ -174,6 +180,9 @@ export default function HomePage({ onNavigate }: Props) {
                   returnKeyType="done"
                   onChangeText={setUrl}
                   onSubmitEditing={addFavourite}
+                  uiModifiers={{
+                    android: [Jetpack.fillMaxWidth()],
+                  }}
                 />
                 <View
                   style={{
@@ -186,7 +195,7 @@ export default function HomePage({ onNavigate }: Props) {
                     systemImage={SystemIcons.add}
                     onPressButton={addFavourite}
                     disabled={!canAdd}
-                    backgroundColor="#ffffff"
+                    backgroundColor="transparent"
                     textColor="#FFFFFF"
                     uiModifiers={buttonUI}
                   />

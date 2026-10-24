@@ -11,7 +11,6 @@ import { AddressBar as AB } from "@/components/ui/AddressBar";
 import * as SwiftUI from "@expo/ui/swift-ui/modifiers";
 
 import Animated, {
-  withTiming,
   useAnimatedStyle,
   withSpring,
   useSharedValue,
@@ -77,6 +76,23 @@ export default function AddressBar({
 
   const showSubmitAction = isEditing || isLoading || !onReload;
 
+  // action button behaviour properties
+  let buttonIcon = SystemIcons.reload;
+  let buttonAction = () => onReload?.();
+  let isButtonDisabled = false;
+
+  // button behaviour states
+  if (isEditing || !onReload) {
+    // 1. User is typing hence submit icon
+    buttonIcon = SystemIcons.arrowUp;
+    buttonAction = handleSubmit;
+  } else {
+    //2. page is in loading state hence show loader and disable button
+    buttonIcon = SystemIcons.loading;
+    buttonAction = () => {};
+    isButtonDisabled = true;
+  }
+
   return (
     <View
       style={{
@@ -119,11 +135,11 @@ export default function AddressBar({
         pointerEvents={editable ? "auto" : "none"}
       >
         <AdaptiveButton
+          key={`${buttonIcon}-${isButtonDisabled}`}
           label=""
-          systemImage={
-            showSubmitAction ? SystemIcons.arrowUp : SystemIcons.reload
-          }
-          onPressButton={showSubmitAction ? handleSubmit : () => onReload?.()}
+          systemImage={buttonIcon}
+          disabled={isButtonDisabled}
+          onPressButton={buttonAction}
           backgroundColor="#0240f800"
           textColor="#bbdcff"
           uiModifiers={{

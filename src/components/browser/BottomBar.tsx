@@ -1,10 +1,9 @@
 import { useEffect, useState, useRef } from "react";
-import { Keyboard, useWindowDimensions } from "react-native";
+import { Keyboard } from "react-native";
 
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
-  withSpring,
   withTiming,
   interpolate,
 } from "react-native-reanimated";
@@ -17,7 +16,7 @@ import AddressBar from "@/components/browser/AddressBar";
 import BrowserToolbar from "@/components/browser/BrowserToolbar";
 
 export default function BottomBar() {
-  const { activeTab, isHome, navigate } = useBrowserSession();
+  const { activeTab, isHome, navigate, reload } = useBrowserSession();
   // main state machine
   const [bottomBarState, setBottomBarState] =
     useState<BottomBarState>("focused");
@@ -87,14 +86,15 @@ export default function BottomBar() {
   }));
 
   // bottom bar gestures
-  const tapGesture = Gesture.Tap().onEnd(() => {
-    if (bottomBarState == "minimized") {
-      runOnJS(setBottomBarState)("focused");
-    }
-    //  else if (bottomBarState == "focused" || bottomBarState == "home") {
-    //   runOnJS(setBottomBarState)("editing");
-    // }
-  });
+  const tapGesture = Gesture.Tap()
+    .enabled(bottomBarState === "minimized")
+    .cancelsTouchesInView(false)
+    .onEnd(() => {
+      if (bottomBarState !== "minimized") return;
+      if (bottomBarState == "minimized") {
+        runOnJS(setBottomBarState)("focused");
+      }
+    });
   const swipeGesture = Gesture.Pan().onEnd((e) => {
     if (e.velocityY < -50) {
       if (bottomBarState == "minimized") {
@@ -106,10 +106,10 @@ export default function BottomBar() {
       runOnJS(dismissEditing)();
     }
   });
-  const gestureCompose = Gesture.Race(tapGesture, swipeGesture);
+  const gestureCompose = Gesture.Race(swipeGesture, tapGesture);
 
   //address bar gestures
-  const textBoxCompose = Gesture.Race();
+  // const textBoxCompose = Gesture.Race(tapGesture);
 
   useEffect(() => {
     const expanded = bottomBarState === "home" || bottomBarState === "editing";
@@ -194,6 +194,7 @@ export default function BottomBar() {
             onFocus={enterEditing}
             onBlur={dismissEditing}
             editable={bottomBarState !== "minimized"}
+            onReload={() => reload()}
           />
         </Animated.View>
         <Animated.View
