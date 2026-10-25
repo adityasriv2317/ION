@@ -6,10 +6,10 @@ import { SystemIcons } from "@/constants/icons";
 import { useBrowserSession } from "@/components/browser/BrowserSessionContext";
 
 export default function BrowserToolbar() {
-  const { activeTab, tabCount, goBack, goForward, openTabs } =
+  const { activeTab, tabCount, goBack, goForward, openTabs, isHome } =
     useBrowserSession();
   const actions = [
-    [1, null, goBack, activeTab.canGoBack, SystemIcons.arrowBack],
+    [1, null, goBack, activeTab.canGoBack || !isHome, SystemIcons.arrowBack],
     [2, null, goForward, activeTab.canGoForward, SystemIcons.arrowForward],
     [3, `${tabCount} Tabs`, openTabs, true],
   ] as const;

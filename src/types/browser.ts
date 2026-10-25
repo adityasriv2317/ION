@@ -8,6 +8,8 @@ export type BrowserTab = {
   canGoBack: boolean;
   canGoForward: boolean;
 
+  favicon?: string;
+
   lifecycle?: TabLifecycle;
   lastAccessed?: number;
 };

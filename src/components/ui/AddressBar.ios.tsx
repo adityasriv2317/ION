@@ -3,7 +3,6 @@ import {
   Host,
   HStack,
   Image,
-  Text,
   TextField,
   useNativeState,
   type TextFieldRef,
@@ -11,18 +10,20 @@ import {
 
 import {
   buttonStyle,
+  disabled as disabledModifier,
+  foregroundStyle,
   frame,
   glassEffect,
   keyboardType,
   onSubmit,
   padding,
   submitLabel,
-  disabled as disabledModifier,
 } from "@expo/ui/swift-ui/modifiers";
+import { Image as RNImage } from "react-native";
 
 import { useEffect, useRef, useState } from "react";
 import { StyleSheet, View } from "react-native";
-import type { AddressBarProps } from "./AddressBar";
+import type { AddressBarProps } from "@/components/ui/AddressBar";
 
 export function AddressBar({
   value,
@@ -31,7 +32,9 @@ export function AddressBar({
   placeholder = "Search or enter address",
   onFocus,
   onBlur,
-  isDisabled
+  isDisabled,
+  favicon,
+  onFaviconPress,
 }: AddressBarProps) {
   const inputRef = useRef<TextFieldRef>(null);
   const text = useNativeState(value);
@@ -65,7 +68,7 @@ export function AddressBar({
           spacing={8}
           modifiers={[
             frame({ width: 250 }),
-            padding({ horizontal: 8, vertical: 8 }),
+            padding({ leading: 8, vertical: 8, trailing: 4 }),
             glassEffect({
               glass: {
                 variant: "regular",
@@ -75,9 +78,38 @@ export function AddressBar({
             }),
           ]}
         >
-          {!isFocused && (
-            <Image systemName="globe" color="secondary" size={18} />
-          )}
+          <Button
+            onPress={onFaviconPress}
+            modifiers={[
+              buttonStyle("plain"),
+              frame({ width: 32, height: 32 }), // Strictly sizes the SwiftUI button for perfect vertical alignment
+            ]}
+          >
+            <View
+              style={{
+                width: 32,
+                height: 32,
+                borderRadius: 16, // Makes it perfectly circular
+                borderWidth: favicon ? 1 : 0,
+                borderColor: favicon ? "rgba(150, 150, 150, 0.4)" : "#ffffff00", // Subtle border color
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+            >
+              {favicon ? (
+                <RNImage
+                  source={{ uri: favicon }}
+                  style={{
+                    width: 18,
+                    height: 18,
+                    borderRadius: 4,
+                  }}
+                />
+              ) : (
+                <Image systemName="globe" color="secondary" size={16} />
+              )}
+            </View>
+          </Button>
 
           <TextField
             ref={inputRef}
@@ -93,7 +125,7 @@ export function AddressBar({
               }
             }}
             modifiers={[
-              frame({ maxWidth: Infinity, width: 200 }),
+              frame({ maxWidth: Infinity }),
               keyboardType("web-search"),
               submitLabel("go"),
               onSubmit(submit),
@@ -102,8 +134,23 @@ export function AddressBar({
           />
 
           {value.length > 0 && !isDisabled && (
-            <Button onPress={clear} modifiers={[buttonStyle("plain")]}>
-              <Text modifiers={[padding({ all: 2 })]}>X</Text>
+            <Button
+              onPress={clear}
+              modifiers={[
+                buttonStyle("borderless"),
+                frame({ width: 32, height: 32 }),
+              ]}
+            >
+              <Image
+                systemName="xmark"
+                modifiers={[
+                  foregroundStyle({
+                    type: "color",
+                    color: "#ffffff",
+                  }),
+                ]}
+                size={16}
+              />
             </Button>
           )}
         </HStack>

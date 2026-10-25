@@ -14,9 +14,13 @@ import { BottomBarState } from "@/constants/bottomBar";
 import { useBrowserSession } from "@/components/browser/BrowserSessionContext";
 import AddressBar from "@/components/browser/AddressBar";
 import BrowserToolbar from "@/components/browser/BrowserToolbar";
+import { getFaviconUrl } from "@/components/browser/BrowserWebView";
+import { WebsiteDetailsSheet } from "@/components/ui/WebsiteDetailsSheet";
 
 export default function BottomBar() {
   const { activeTab, isHome, navigate, reload } = useBrowserSession();
+  const [isWebsiteDetailsPresented, setIsWebsiteDetailsPresented] =
+    useState(false);
   // main state machine
   const [bottomBarState, setBottomBarState] =
     useState<BottomBarState>("focused");
@@ -88,7 +92,7 @@ export default function BottomBar() {
   // bottom bar gestures
   const tapGesture = Gesture.Tap()
     .enabled(bottomBarState === "minimized")
-    .cancelsTouchesInView(false)
+    .cancelsTouchesInView(bottomBarState === "minimized")
     .onEnd(() => {
       if (bottomBarState !== "minimized") return;
       if (bottomBarState == "minimized") {
@@ -108,19 +112,11 @@ export default function BottomBar() {
   });
   const gestureCompose = Gesture.Race(swipeGesture, tapGesture);
 
-  //address bar gestures
-  // const textBoxCompose = Gesture.Race(tapGesture);
-
   useEffect(() => {
     const expanded = bottomBarState === "home" || bottomBarState === "editing";
 
     const showToolbar = bottomBarState === "focused";
     const minimized = bottomBarState === "minimized";
-
-    // expansion.value = withSpring(expanded ? 1 : 0, {
-    //   damping: 22,
-    //   stiffness: 200,
-    // });
     expansion.value = withTiming(expanded ? 1 : 0, {
       duration: 300,
     });
@@ -141,6 +137,14 @@ export default function BottomBar() {
       return current;
     });
   }, [isHome]);
+
+  useEffect(() => {
+    const dismissal = setTimeout(() => {
+      setIsWebsiteDetailsPresented(false);
+    }, 0);
+
+    return () => clearTimeout(dismissal);
+  }, [activeTab.id, bottomBarState]);
 
   useEffect(() => {
     if (bottomBarState !== "editing") return;
@@ -164,52 +168,64 @@ export default function BottomBar() {
   }, [keyboardOffset]);
 
   return (
-    <GestureDetector gesture={gestureCompose}>
-      <Animated.View
-        style={{
-          flex: 1,
-          position: "absolute",
-          bottom: 34,
-          width: "100%",
-          zIndex: 100,
-        }}
-      >
+    <>
+      <GestureDetector gesture={gestureCompose}>
         <Animated.View
-          style={[
-            {
-              width: "100%",
-              alignItems: "center",
-            },
-            addressAnimatedStyle,
-          ]}
+          style={{
+            flex: 1,
+            position: "absolute",
+            bottom: 34,
+            width: "100%",
+            zIndex: 100,
+          }}
         >
-          <AddressBar
-            value={activeTab.url}
-            isLoading={activeTab.isLoading}
-            onSubmit={(value) => {
-              navigate(value);
-              Keyboard.dismiss();
-              setBottomBarState("focused");
-            }}
-            onFocus={enterEditing}
-            onBlur={dismissEditing}
-            editable={bottomBarState !== "minimized"}
-            onReload={() => reload()}
-          />
+          <Animated.View
+            style={[
+              {
+                width: "100%",
+                alignItems: "center",
+              },
+              addressAnimatedStyle,
+            ]}
+          >
+            <AddressBar
+              value={activeTab.url}
+              isLoading={activeTab.isLoading}
+              onSubmit={(value) => {
+                navigate(value);
+                Keyboard.dismiss();
+                setBottomBarState("focused");
+              }}
+              onFocus={enterEditing}
+              onBlur={dismissEditing}
+              editable={bottomBarState !== "minimized"}
+              onReload={() => reload()}
+              favicon={getFaviconUrl(activeTab.url)}
+              onWebsiteDetailsPress={() =>
+                setIsWebsiteDetailsPresented(true)
+              }
+            />
+          </Animated.View>
+          <Animated.View
+            pointerEvents={bottomBarState === "focused" ? "auto" : "none"}
+            style={[
+              {
+                width: "100%",
+              },
+              toolbarAnimatedStyle,
+            ]}
+          >
+            <BrowserToolbar />
+          </Animated.View>
         </Animated.View>
-        <Animated.View
-          pointerEvents={bottomBarState === "focused" ? "auto" : "none"}
-          style={[
-            {
-              width: "100%",
-              // overflow: "hidden",
-            },
-            toolbarAnimatedStyle,
-          ]}
-        >
-          <BrowserToolbar />
-        </Animated.View>
-      </Animated.View>
-    </GestureDetector>
+      </GestureDetector>
+      <WebsiteDetailsSheet
+        isPresented={isWebsiteDetailsPresented}
+        onDismiss={() => setIsWebsiteDetailsPresented(false)}
+        favicon={getFaviconUrl(activeTab.url)}
+        title={activeTab.title}
+        url={activeTab.url}
+      />
+    </>
   );
 }

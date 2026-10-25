@@ -24,6 +24,8 @@ export type addressbarProps = {
   onFocus?: () => void;
   editable?: boolean;
   onBlur?: () => void;
+  favicon?: string;
+  onWebsiteDetailsPress?: () => void;
 };
 
 export default function AddressBar({
@@ -34,6 +36,8 @@ export default function AddressBar({
   onFocus,
   editable,
   onBlur,
+  favicon,
+  onWebsiteDetailsPress,
 }: addressbarProps) {
   const [text, setText] = useState(value);
   const [isEditing, setIsEditing] = useState(false);
@@ -74,8 +78,6 @@ export default function AddressBar({
     onSubmit(text);
   };
 
-  const showSubmitAction = isEditing || isLoading || !onReload;
-
   // action button behaviour properties
   let buttonIcon = SystemIcons.reload;
   let buttonAction = () => onReload?.();
@@ -86,7 +88,7 @@ export default function AddressBar({
     // 1. User is typing hence submit icon
     buttonIcon = SystemIcons.arrowUp;
     buttonAction = handleSubmit;
-  } else {
+  } else if (isLoading) {
     //2. page is in loading state hence show loader and disable button
     buttonIcon = SystemIcons.loading;
     buttonAction = () => {};
@@ -119,9 +121,18 @@ export default function AddressBar({
         }}
         onBlur={() => {
           setIsEditing(false);
+          if (value === HOME_URL) {
+            setText("");
+          } else {
+            setText(value);
+          }
           onBlur?.();
         }}
         isDisabled={!editable}
+        favicon={favicon}
+        onFaviconPress={() => {
+          if (editable) onWebsiteDetailsPress?.();
+        }}
       />
 
       <Animated.View
@@ -153,7 +164,6 @@ export default function AddressBar({
                 },
                 shape: "circle",
               }),
-              SwiftUI.padding({ bottom: 3 }),
             ],
             android: [
               jetpack.size(64, 64),

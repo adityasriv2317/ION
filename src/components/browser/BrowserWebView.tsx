@@ -23,6 +23,52 @@ type Props = {
   onSwipeBackToHome?: () => void;
 };
 
+const extractFaviconJS = `
+  (function() {
+    const getFavicon = () => {
+      let favicon = undefined;
+      const nodeList = document.getElementsByTagName("link");
+      for (let i = 0; i < nodeList.length; i++) {
+        if((nodeList[i].getAttribute("rel") === "icon") || (nodeList[i].getAttribute("rel") === "shortcut icon")) {
+          favicon = nodeList[i].getAttribute("href");
+        }
+      }
+      // Ensure the URL is absolute
+      if (favicon && !favicon.startsWith('http')) {
+        favicon = new URL(favicon, window.location.href).href;
+      }
+      return favicon;
+    }
+
+    const iconUrl = getFavicon();
+    if (iconUrl) {
+      window.ReactNativeWebView.postMessage(JSON.stringify({
+        type: 'FAVICON',
+        payload: iconUrl
+      }));
+    }
+  })();
+  true; // Required for injectedJavaScript to run silently
+`;
+
+export const getFaviconUrl = (pageUrl: string) => {
+  if (!pageUrl) return undefined;
+
+  try {
+    // Force a protocol so new URL() doesn't fail on bare domains
+    const validUrl = pageUrl.startsWith("http")
+      ? pageUrl
+      : `https://${pageUrl}`;
+    const domain = new URL(validUrl).hostname;
+
+    if (!domain || domain === "localhost") return undefined;
+
+    return `https://www.google.com/s2/favicons?sz=64&domain_url=${domain}`;
+  } catch (error) {
+    return undefined;
+  }
+};
+
 export default function BrowserWebView({
   tabId,
   url,
@@ -35,9 +81,8 @@ export default function BrowserWebView({
   const updateTab = useBrowserStore((s) => s.updateTab);
   const canGoBack = useBrowserStore(
     (s) =>
-      (s.isIncognito ? s.incognitoTabs : s.tabs).find(
-        (t) => t.id === tabId,
-      )?.canGoBack ?? false,
+      (s.isIncognito ? s.incognitoTabs : s.tabs).find((t) => t.id === tabId)
+        ?.canGoBack ?? false,
   );
 
   const onNavigationStateChange = (nav: WebViewNavigation) => {
@@ -94,6 +139,18 @@ export default function BrowserWebView({
     [onSwipeBackToHome],
   );
 
+  const onMessage = (event: any) => {
+    try {
+      const data = JSON.parse(event.nativeEvent.data);
+      if (data.type === "FAVICON" && data.payload) {
+        // Save the favicon to the current tab in the store
+        updateTab(tabId, { favicon: data.payload });
+      }
+    } catch (e) {
+      // Ignore parse errors from other scripts
+    }
+  };
+
   return (
     <View style={styles.container}>
       <WebView
@@ -114,6 +171,8 @@ export default function BrowserWebView({
         pullToRefreshEnabled
         allowsBackForwardNavigationGestures={true}
         scrollEnabled
+        // onMessage={onMessage} // message listener
+        // injectedJavaScript={extractFaviconJS} // Inject the script
         renderLoading={() => (
           <View
             style={{
