@@ -4,8 +4,6 @@ import {
   KeyboardAvoidingView,
   Platform,
   View,
-  Pressable,
-  Keyboard,
 } from "react-native";
 import type { WebView as WebViewType } from "react-native-webview";
 
