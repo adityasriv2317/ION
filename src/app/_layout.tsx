@@ -36,6 +36,7 @@ export default function RootLayout() {
           <Stack.Screen name="tabs" />
           <Stack.Screen name="bookmarks" />
           <Stack.Screen name="history" />
+          <Stack.Screen name="settings" />
         </Stack>
       </GestureHandlerRootView>
     </SafeAreaProvider>

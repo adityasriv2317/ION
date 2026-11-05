@@ -4,6 +4,7 @@ import {
   Text,
   useWindowDimensions,
   View,
+  Pressable,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -16,9 +17,15 @@ import { SystemIcons } from "@/constants/icons";
 export default function BookmarksScreen() {
   const router = useRouter();
   const bookmarks = useBrowserStore((state) => state.bookmarks);
+  const addTab = useBrowserStore((state) => state.addTab);
   const removeBookmark = useBrowserStore((state) => state.removeBookmark);
   const { width } = useWindowDimensions();
   const columns = width >= 700 ? 3 : 2;
+
+  const openBookmark = (url: string) => {
+    addTab(url);
+    router.replace("/");
+  };
 
   return (
     <SafeAreaView style={styles.screen}>
@@ -55,7 +62,12 @@ export default function BookmarksScreen() {
         columnWrapperStyle={columns > 1 ? styles.column : undefined}
         showsVerticalScrollIndicator={false}
         renderItem={({ item }) => (
-          <View style={styles.card}>
+          <Pressable
+            style={styles.card}
+            onPress={() => openBookmark(item.url)}
+            accessibilityRole="button"
+            accessibilityLabel={`Open ${item.title || item.url}`}
+          >
             <View style={styles.details}>
               <Text style={styles.title} numberOfLines={2}>
                 {item.title || "Untitled bookmark"}
@@ -73,7 +85,7 @@ export default function BookmarksScreen() {
                 textColor="#F4A5B5"
               />
             </View>
-          </View>
+          </Pressable>
         )}
         ListEmptyComponent={
           <Text style={styles.message}>No bookmarks yet.</Text>

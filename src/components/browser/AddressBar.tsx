@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { View } from "react-native";
+import { useEffect, useRef, useState } from "react";
+import { ActivityIndicator, StyleSheet, View } from "react-native";
 import AdaptiveButton from "@/components/ui/button";
 import { SystemIcons } from "@/constants/icons";
 
@@ -41,6 +41,8 @@ export default function AddressBar({
 }: addressbarProps) {
   const [text, setText] = useState(value);
   const [isEditing, setIsEditing] = useState(false);
+  const [loadingSuppressed, setLoadingSuppressed] = useState(false);
+  const submittedDuringEdit = useRef(false);
 
   const BUTTON_WIDTH = 64;
   const buttonProgress = useSharedValue(editable ? 1 : 0);
@@ -71,16 +73,24 @@ export default function AddressBar({
 
   const handleSubmit = () => {
     setIsEditing(false);
+    submittedDuringEdit.current = true;
     if (text === "") {
       setText(value);
+      setLoadingSuppressed(true);
       return;
     }
+    setLoadingSuppressed(false);
     onSubmit(text);
   };
 
+  const showLoading = isLoading && !loadingSuppressed;
+
   // action button behaviour properties
   let buttonIcon = SystemIcons.reload;
-  let buttonAction = () => onReload?.();
+  let buttonAction = () => {
+    setLoadingSuppressed(false);
+    onReload?.();
+  };
   let isButtonDisabled = false;
 
   // button behaviour states
@@ -88,7 +98,7 @@ export default function AddressBar({
     // 1. User is typing hence submit icon
     buttonIcon = SystemIcons.arrowUp;
     buttonAction = handleSubmit;
-  } else if (isLoading) {
+  } else if (showLoading) {
     //2. page is in loading state hence show loader and disable button
     buttonIcon = SystemIcons.loading;
     buttonAction = () => {};
@@ -96,20 +106,7 @@ export default function AddressBar({
   }
 
   return (
-    <View
-      style={{
-        minHeight: 48,
-        flexDirection: "row",
-        alignItems: "center",
-        borderRadius: 16,
-        paddingHorizontal: "10%",
-        marginVertical: 10,
-        width: "100%",
-        marginHorizontal: "auto",
-        justifyContent: "center",
-        gap: 4,
-      }}
-    >
+    <View style={styles.mainContainer}>
       <AB
         value={text}
         onChangeText={setText}
@@ -117,10 +114,14 @@ export default function AddressBar({
         placeholder="Search or enter address"
         onFocus={() => {
           setIsEditing(true);
+          submittedDuringEdit.current = false;
           onFocus?.();
         }}
         onBlur={() => {
           setIsEditing(false);
+          if (!submittedDuringEdit.current) {
+            setLoadingSuppressed(true);
+          }
           if (value === HOME_URL) {
             setText("");
           } else {
@@ -152,7 +153,7 @@ export default function AddressBar({
           disabled={isButtonDisabled}
           onPressButton={buttonAction}
           backgroundColor="#0240f800"
-          textColor="#bbdcff"
+          textColor={showLoading ? "transparent" : "#bbdcff"}
           uiModifiers={{
             ios: [
               SwiftUI.glassEffect({
@@ -172,7 +173,37 @@ export default function AddressBar({
             ],
           }}
         />
+        {showLoading && (
+          <ActivityIndicator
+            pointerEvents="none"
+            color="#bbdcff"
+            style={{ position: "absolute" }}
+          />
+        )}
       </Animated.View>
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  mainContainer: {
+    // width: "100%",
+    // marginHorizontal: "auto",
+    // minHeight: 48,
+    // flexDirection: "row",
+    // alignItems: "center",
+    // borderRadius: 16,
+    // justifyContent: "center",
+    // gap: 4,
+    minHeight: 48,
+    flexDirection: "row",
+    alignItems: "center",
+    borderRadius: 16,
+    paddingHorizontal: "10%",
+    marginVertical: 10,
+    width: "100%",
+    marginHorizontal: "auto",
+    justifyContent: "center",
+    gap: 4,
+  },
+});

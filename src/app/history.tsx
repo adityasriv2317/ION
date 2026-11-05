@@ -7,6 +7,7 @@ import {
   Text,
   useWindowDimensions,
   View,
+  Pressable,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -17,9 +18,11 @@ import { clearHistory, listHistory } from "@/db/history";
 import type { HistoryEntry } from "@/types/browser";
 import AdaptiveButton from "@/components/ui/button";
 import { SystemIcons } from "@/constants/icons";
+import { useBrowserStore } from "@/stores/browserStore";
 
 export default function HistoryScreen() {
   const router = useRouter();
+  const addTab = useBrowserStore((state) => state.addTab);
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -74,6 +77,11 @@ export default function HistoryScreen() {
         },
       ],
     );
+  };
+
+  const openHistoryEntry = (url: string) => {
+    addTab(url);
+    router.replace("/");
   };
 
   return (
@@ -137,7 +145,12 @@ export default function HistoryScreen() {
           columnWrapperStyle={columns > 1 ? styles.column : undefined}
           showsVerticalScrollIndicator={false}
           renderItem={({ item }) => (
-            <View style={styles.card}>
+            <Pressable
+              style={styles.card}
+              onPress={() => openHistoryEntry(item.url)}
+              accessibilityRole="button"
+              accessibilityLabel={`Open ${item.title || item.url}`}
+            >
               <Text style={styles.title} numberOfLines={1}>
                 {item.title || "Untitled page"}
               </Text>
@@ -147,7 +160,7 @@ export default function HistoryScreen() {
               <Text style={styles.date}>
                 {new Date(item.visitedAt).toLocaleDateString()}
               </Text>
-            </View>
+            </Pressable>
           )}
           ListEmptyComponent={
             <Text style={styles.message}>No history yet.</Text>

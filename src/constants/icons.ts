@@ -1,5 +1,6 @@
 import { Icon } from "@expo/ui";
 import closeIcon from "@expo/material-symbols/close.xml";
+import check from "@expo/material-symbols/check.xml";
 import {
   Archive03Icon,
   ArrowLeftIcon,
@@ -41,6 +42,7 @@ export const SystemIcons = {
     ios: "bookmark",
     android: import("@expo/material-symbols/bookmark.xml"),
   }),
+  check: check,
   close: closeIcon,
   delete: Icon.select({
     ios: "trash",
@@ -77,6 +79,10 @@ export const SystemIcons = {
   search: Icon.select({
     ios: "magnifyingglass",
     android: import("@expo/material-symbols/search.xml"),
+  }),
+  settings: Icon.select({
+    ios: "gearshape",
+    android: import("@expo/material-symbols/settings.xml"),
   }),
   shield: Icon.select({
     ios: "eye.slash",

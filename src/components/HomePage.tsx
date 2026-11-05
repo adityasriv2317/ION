@@ -18,7 +18,6 @@ import { SystemIcons } from "@/constants/icons";
 import { useBrowserStore } from "@/stores/browserStore";
 import type { Favourite } from "@/types/browser";
 import { resolveNavigationTarget } from "@/utils/resolveNavigationTarget";
-import AddressBar from "./browser/AddressBar";
 
 type Props = {
   onNavigate: (url: string) => void;
@@ -226,15 +225,27 @@ export default function HomePage({ onNavigate }: Props) {
             textColor="#FFFFFF"
             uiModifiers={buttonUI}
           />
+          <AdaptiveButton
+            label=""
+            systemImage={SystemIcons.settings}
+            onPressButton={() => router.push("/settings")}
+            backgroundColor="#292747"
+            textColor="#FFFFFF"
+            uiModifiers={{
+              ios: [
+                SwiftUI.glassEffect({
+                  glass: { variant: "clear", interactive: true },
+                  shape: "circle",
+                }),
+              ],
+              android: [
+                Jetpack.clip(Jetpack.Shapes.Circle),
+                Jetpack.background("#292747"),
+              ],
+            }}
+          />
         </View>
       </ScrollView>
-      {/* <View
-        style={{
-          marginBottom: 20,
-        }}
-      >
-        <AddressBar onSubmit={navigateToQuery} value="" />
-      </View> */}
     </View>
   );
 }

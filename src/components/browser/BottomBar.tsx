@@ -11,7 +11,7 @@ import { runOnJS } from "react-native-worklets";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 
 import { BottomBarState } from "@/constants/bottomBar";
-import { useBrowserSession } from "@/components/browser/BrowserSessionContext";
+import { useBrowserSession } from "@/stores/BrowserSessionContext";
 import AddressBar from "@/components/browser/AddressBar";
 import BrowserToolbar from "@/components/browser/BrowserToolbar";
 import { getFaviconUrl } from "@/components/browser/BrowserWebView";
@@ -89,6 +89,11 @@ export default function BottomBar() {
     ],
   }));
 
+  const gestureAreaAnimatedStyle = useAnimatedStyle(() => ({
+    height:
+      68 + 50 * (p_toolbar.value + expansion.value) + 70 * p_minimized.value,
+  }));
+
   // bottom bar gestures
   const tapGesture = Gesture.Tap()
     .enabled(bottomBarState === "minimized")
@@ -110,7 +115,8 @@ export default function BottomBar() {
       runOnJS(dismissEditing)();
     }
   });
-  const gestureCompose = Gesture.Race(swipeGesture, tapGesture);
+  const addressbarCompose = Gesture.Race(tapGesture, swipeGesture);
+  const toolbarCompose = Gesture.Race(swipeGesture);
 
   useEffect(() => {
     const expanded = bottomBarState === "home" || bottomBarState === "editing";
@@ -169,21 +175,31 @@ export default function BottomBar() {
 
   return (
     <>
-      <GestureDetector gesture={gestureCompose}>
-        <Animated.View
-          style={{
-            flex: 1,
+      {/* <GestureDetector gesture={gestureCompose}> */}
+      <Animated.View
+        pointerEvents="box-none"
+        style={[
+          {
             position: "absolute",
             bottom: 34,
             width: "100%",
             zIndex: 100,
-          }}
-        >
+            // backgroundColor: "#ffffff55",
+          },
+          gestureAreaAnimatedStyle,
+        ]}
+      >
+        <GestureDetector gesture={addressbarCompose}>
           <Animated.View
             style={[
               {
-                width: "100%",
+                maxWidth: "90%",
                 alignItems: "center",
+                // backgroundColor: "green",
+                marginHorizontal: "auto",
+                paddingVertical: 0,
+                paddingHorizontal: 10,
+                borderRadius: 36,
               },
               addressAnimatedStyle,
             ]}
@@ -201,11 +217,11 @@ export default function BottomBar() {
               editable={bottomBarState !== "minimized"}
               onReload={() => reload()}
               favicon={getFaviconUrl(activeTab.url)}
-              onWebsiteDetailsPress={() =>
-                setIsWebsiteDetailsPresented(true)
-              }
+              onWebsiteDetailsPress={() => setIsWebsiteDetailsPresented(true)}
             />
           </Animated.View>
+        </GestureDetector>
+        <GestureDetector gesture={toolbarCompose}>
           <Animated.View
             pointerEvents={bottomBarState === "focused" ? "auto" : "none"}
             style={[
@@ -217,8 +233,9 @@ export default function BottomBar() {
           >
             <BrowserToolbar />
           </Animated.View>
-        </Animated.View>
-      </GestureDetector>
+        </GestureDetector>
+      </Animated.View>
+      {/* </GestureDetector> */}
       <WebsiteDetailsSheet
         isPresented={isWebsiteDetailsPresented}
         onDismiss={() => setIsWebsiteDetailsPresented(false)}

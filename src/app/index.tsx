@@ -16,7 +16,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import HomePage from "@/components/HomePage";
 import BottomBar from "@/components/browser/BottomBar";
-import { BrowserSessionProvider } from "@/components/browser/BrowserSessionContext";
+import { BrowserSessionProvider } from "@/stores/BrowserSessionContext";
 import {
   useActiveTab,
   useActiveTabId,

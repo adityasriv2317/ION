@@ -3,7 +3,7 @@ import * as Jetpack from "@expo/ui/jetpack-compose/modifiers";
 import * as SwiftUI from "@expo/ui/swift-ui/modifiers";
 import { View } from "react-native";
 import { SystemIcons } from "@/constants/icons";
-import { useBrowserSession } from "@/components/browser/BrowserSessionContext";
+import { useBrowserSession } from "@/stores/BrowserSessionContext";
 
 export default function BrowserToolbar() {
   const { activeTab, tabCount, goBack, goForward, openTabs, isHome } =

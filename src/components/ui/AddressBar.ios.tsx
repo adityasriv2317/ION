@@ -21,6 +21,8 @@ import {
 } from "@expo/ui/swift-ui/modifiers";
 import { Image as RNImage } from "react-native";
 
+const globeImage = require("../../../assets/images/globe.png");
+
 import { useEffect, useRef, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import type { AddressBarProps } from "@/components/ui/AddressBar";
@@ -96,18 +98,14 @@ export function AddressBar({
                 alignItems: "center",
               }}
             >
-              {favicon ? (
-                <RNImage
-                  source={{ uri: favicon }}
-                  style={{
-                    width: 18,
-                    height: 18,
-                    borderRadius: 4,
-                  }}
-                />
-              ) : (
-                <Image systemName="globe" color="secondary" size={16} />
-              )}
+              <RNImage
+                source={favicon ? { uri: favicon } : globeImage}
+                style={{
+                  width: 18,
+                  height: 18,
+                  borderRadius: 4,
+                }}
+              />
             </View>
           </Button>
 

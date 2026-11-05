@@ -26,6 +26,8 @@ import {
 
 import { SystemIcons } from "@/constants/icons";
 
+const globeImage = require("../../../assets/images/globe.png");
+
 export interface AddressBarProps {
   value: string;
   onChangeText: (text: string) => void;
@@ -76,16 +78,10 @@ export function AddressBar({
           onPress={onFaviconPress}
           activeOpacity={0.7}
         >
-          {favicon ? (
-            <RNImage
-              source={{ uri: favicon }}
-              style={{ width: 20, height: 20, borderRadius: 4 }}
-            />
-          ) : (
-            <Host style={{ width: 24, height: 24 }}>
-              <Icon name={SystemIcons.incognitoOff} size={24} color="#918DAF" />
-            </Host>
-          )}
+          <RNImage
+            source={favicon ? { uri: favicon } : globeImage}
+            style={{ width: 20, height: 20, borderRadius: 4 }}
+          />
         </TouchableOpacity>
 
         <Host

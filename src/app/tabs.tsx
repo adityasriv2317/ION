@@ -6,16 +6,19 @@ import {
   useWindowDimensions,
   View,
 } from "react-native";
+import { useEffect, useState } from "react";
 import { useRouter } from "expo-router";
 import { useBrowserStore } from "@/stores/browserStore";
-import {
-  useActiveTabId,
-  useVisibleTabs,
-} from "@/stores/browserSelectors";
+import { useActiveTabId, useVisibleTabs } from "@/stores/browserSelectors";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { HugeiconsIcon } from "@hugeicons/react-native";
 import AdaptiveButton from "@/components/ui/button";
 import { HugeIcons, SystemIcons } from "@/constants/icons";
+import type { BrowserTab } from "@/types/browser";
+import Animated, {
+  useAnimatedStyle,
+  withTiming,
+} from "react-native-reanimated";
 
 import * as SwiftUI from "@expo/ui/swift-ui/modifiers";
 import * as Jetpack from "@expo/ui/jetpack-compose/modifiers";
@@ -76,6 +79,97 @@ const getIncognitoButtonUI = (isIncognito: boolean) => ({
   ],
 });
 
+type TabCardProps = {
+  tab: BrowserTab;
+  isActive: boolean;
+  isBookmarked: boolean;
+  onSelect: () => void;
+  onToggleBookmark: () => void;
+  onClose: () => void;
+};
+
+function TabCard({
+  tab,
+  isActive,
+  isBookmarked,
+  onSelect,
+  onToggleBookmark,
+  onClose,
+}: TabCardProps) {
+  const [isClosing, setIsClosing] = useState(false);
+
+  const animatedStyle = useAnimatedStyle(
+    () => ({
+      opacity: withTiming(isClosing ? 0 : 1, { duration: 180 }),
+      transform: [
+        { scale: withTiming(isClosing ? 0 : 1, { duration: 220 }) },
+      ],
+    }),
+    [isClosing],
+  );
+
+  useEffect(() => {
+    if (!isClosing) return;
+
+    const removal = setTimeout(onClose, 220);
+    return () => clearTimeout(removal);
+  }, [isClosing, onClose]);
+
+  const close = () => {
+    if (!isClosing) setIsClosing(true);
+  };
+
+  return (
+    <Animated.View
+      style={[
+        styles.tabCard,
+        isActive && styles.activeTabCard,
+        animatedStyle,
+      ]}
+    >
+      <Pressable onPress={onSelect} style={styles.tabButton}>
+        <Text
+          numberOfLines={2}
+          style={[styles.tabTitle, isActive && styles.activeTabTitle]}
+        >
+          {tab.title || "New Tab"}
+        </Text>
+        <Text numberOfLines={1} style={styles.tabUrl}>
+          {tab.url}
+        </Text>
+      </Pressable>
+
+      <View style={styles.cardActions}>
+        <Pressable
+          onPress={onToggleBookmark}
+          accessibilityRole="button"
+          accessibilityLabel={
+            isBookmarked ? "Remove bookmark" : "Bookmark tab"
+          }
+          hitSlop={8}
+          style={styles.bookmarkButton}
+        >
+          <HugeiconsIcon
+            icon={HugeIcons.bookmark}
+            size={20}
+            color={isBookmarked ? "#B7A5FF" : "#FFFFFF"}
+          />
+        </Pressable>
+
+        <Pressable
+          onPress={close}
+          accessibilityRole="button"
+          accessibilityLabel="Close tab"
+          hitSlop={8}
+          style={styles.closeButton}
+        >
+          <Text style={styles.closeText}>×</Text>
+        </Pressable>
+      </View>
+    </Animated.View>
+  );
+}
+
 export default function TabsScreen() {
   const router = useRouter();
   const tabs = useVisibleTabs();
@@ -130,69 +224,33 @@ export default function TabsScreen() {
           );
 
           return (
-            <View style={[styles.tabCard, isActive && styles.activeTabCard]}>
-              <Pressable
-                onPress={() => {
-                  setActiveTab(item.id);
-                  router.back();
-                }}
-                style={styles.tabButton}
-              >
-                <Text
-                  numberOfLines={2}
-                  style={[styles.tabTitle, isActive && styles.activeTabTitle]}
-                >
-                  {item.title || "New Tab"}
-                </Text>
-                <Text numberOfLines={1} style={styles.tabUrl}>
-                  {item.url}
-                </Text>
-              </Pressable>
+            <TabCard
+              tab={item}
+              isActive={isActive}
+              isBookmarked={isBookmarked}
+              onSelect={() => {
+                setActiveTab(item.id);
+                router.back();
+              }}
+              onToggleBookmark={() => {
+                const bookmark = bookmarks.find(
+                  (bookmarkItem) => bookmarkItem.url === item.url,
+                );
 
-              <View style={styles.cardActions}>
-                <Pressable
-                  onPress={() => {
-                    const bookmark = bookmarks.find(
-                      (bookmarkItem) => bookmarkItem.url === item.url,
-                    );
+                if (bookmark) {
+                  removeBookmark(bookmark.id);
+                  return;
+                }
 
-                    if (bookmark) {
-                      removeBookmark(bookmark.id);
-                      return;
-                    }
-
-                    addBookmark({
-                      id: `${item.id}-${Date.now()}`,
-                      url: item.url,
-                      title: item.title,
-                      createdAt: Date.now(),
-                    });
-                  }}
-                  accessibilityRole="button"
-                  accessibilityLabel={
-                    isBookmarked ? "Remove bookmark" : "Bookmark tab"
-                  }
-                  hitSlop={8}
-                  style={styles.bookmarkButton}
-                >
-                  <HugeiconsIcon
-                    icon={HugeIcons.bookmark}
-                    size={20}
-                    color={isBookmarked ? "#B7A5FF" : "#FFFFFF"}
-                  />
-                </Pressable>
-
-                <Pressable
-                  onPress={() => closeTab(item.id)}
-                  accessibilityRole="button"
-                  accessibilityLabel="Close tab"
-                  hitSlop={8}
-                  style={styles.closeButton}
-                >
-                  <Text style={styles.closeText}>×</Text>
-                </Pressable>
-              </View>
-            </View>
+                addBookmark({
+                  id: `${item.id}-${Date.now()}`,
+                  url: item.url,
+                  title: item.title,
+                  createdAt: Date.now(),
+                });
+              }}
+              onClose={() => closeTab(item.id)}
+            />
           );
         }}
       />
