@@ -2,7 +2,7 @@
   "expo": {
     "name": "Ion",
     "slug": "ion",
-    "version": "0.0.1",
+    "version": "0.1.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "ion",
@@ -20,7 +20,8 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.adityasriv27.ion"
+      "package": "com.adityasriv2317.ion",
+      "versionCode": 1
     },
     "web": {
       "output": "static",
@@ -38,7 +39,8 @@
       ],
       "expo-sqlite",
       "expo-secure-store",
-      "expo-asset"
+      "expo-asset",
+      "expo-status-bar"
     ],
     "experiments": {
       "typedRoutes": true,

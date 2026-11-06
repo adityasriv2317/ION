@@ -12,7 +12,7 @@ import Toggle from "@/components/ui/toggle";
 import { HugeIcons, SystemIcons } from "@/constants/icons";
 import { useBrowserStore } from "@/stores/browserStore";
 
-const appVersion = "0.0.1";
+const appVersion = "0.1.0";
 
 export default function SettingsScreen() {
   const router = useRouter();
