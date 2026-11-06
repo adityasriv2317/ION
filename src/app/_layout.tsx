@@ -4,9 +4,19 @@ import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+import { ThemeProvider, useTheme } from "@/stores/themeContext";
 
 export default function RootLayout() {
+  return (
+    <ThemeProvider>
+      <RootNavigator />
+    </ThemeProvider>
+  );
+}
+
+function RootNavigator() {
   const router = useRouter();
+  const { colorScheme, colors } = useTheme();
 
   useEffect(() => {
     const checkUser = async () => {
@@ -22,13 +32,13 @@ export default function RootLayout() {
 
   return (
     <SafeAreaProvider>
-      <StatusBar style="light" />
+      <StatusBar style={colorScheme === "dark" ? "light" : "dark"} />
       <GestureHandlerRootView>
         <Stack
           screenOptions={{
             headerShown: false,
             contentStyle: {
-              backgroundColor: "#11111B",
+              backgroundColor: colors.background,
             },
           }}
         >

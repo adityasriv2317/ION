@@ -11,6 +11,7 @@ import BuiltForMobileSheet from "@/components/ui/BuiltForMobileSheet";
 import Toggle from "@/components/ui/toggle";
 import { HugeIcons, SystemIcons } from "@/constants/icons";
 import { useBrowserStore } from "@/stores/browserStore";
+import { useTheme, type ThemeMode } from "@/stores/themeContext";
 
 const appVersion = "0.1.0";
 
@@ -18,11 +19,14 @@ export default function SettingsScreen() {
   const router = useRouter();
   const isIncognito = useBrowserStore((state) => state.isIncognito);
   const setIncognito = useBrowserStore((state) => state.setIncognito);
+  const { colors, mode, setMode } = useTheme();
   const [isMobileDetailsPresented, setIsMobileDetailsPresented] =
     useState(false);
 
   return (
-    <SafeAreaView style={styles.screen}>
+    <SafeAreaView
+      style={[styles.screen, { backgroundColor: colors.background }]}
+    >
       <ScrollView
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
@@ -32,8 +36,8 @@ export default function SettingsScreen() {
             label=""
             systemImage={SystemIcons.arrowBack}
             onPressButton={() => router.back()}
-            backgroundColor="#292747"
-            textColor="#FFFFFF"
+            backgroundColor={colors.buttonBg}
+            textColor={colors.text}
             uiModifiers={{
               ios: [
                 SwiftUI.glassEffect({
@@ -43,9 +47,51 @@ export default function SettingsScreen() {
               ],
             }}
           />
-          <Text style={styles.heading}>Settings</Text>
+          <Text style={[styles.heading, { color: colors.text }]}>Settings</Text>
           <View style={styles.headerSpacer} />
         </View>
+
+        <SettingsSection title="Appearance">
+          <SettingsRow
+            icon={HugeIcons.settings}
+            title="Theme"
+            description="Choose how ION looks."
+            accessory={
+              <View style={styles.themeOptions}>
+                {(["system", "light", "dark"] as ThemeMode[]).map((option) => (
+                  <Pressable
+                    key={option}
+                    accessibilityRole="radio"
+                    accessibilityState={{ selected: mode === option }}
+                    onPress={() => setMode(option)}
+                    style={[
+                      styles.themeOption,
+                      { borderColor: colors.border },
+                      mode === option && {
+                        backgroundColor: colors.accent,
+                        borderColor: colors.accent,
+                      },
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        styles.themeOptionText,
+                        {
+                          color:
+                            mode === option
+                              ? colors.accentText
+                              : colors.textSecondary,
+                        },
+                      ]}
+                    >
+                      {option[0].toUpperCase() + option.slice(1)}
+                    </Text>
+                  </Pressable>
+                ))}
+              </View>
+            }
+          />
+        </SettingsSection>
 
         <SettingsSection title="Browsing">
           <SettingsRow
@@ -106,10 +152,21 @@ function SettingsSection({
   title: string;
   children: React.ReactNode;
 }) {
+  const { colors } = useTheme();
   return (
     <View style={styles.section}>
-      <Text style={styles.sectionTitle}>{title}</Text>
-      <View style={styles.sectionCard}>{children}</View>
+      <Text style={[styles.sectionTitle, { color: colors.text }]}>{title}</Text>
+      <View
+        style={[
+          styles.sectionCard,
+          {
+            backgroundColor: colors.backgroundElement,
+            borderColor: colors.border,
+          },
+        ]}
+      >
+        {children}
+      </View>
     </View>
   );
 }
@@ -127,19 +184,27 @@ function SettingsRow({
   accessory?: React.ReactNode;
   onPress?: () => void;
 }) {
+  const { colors } = useTheme();
   const content = (
     <>
-      <View style={styles.rowIcon}>
-        <HugeiconsIcon icon={icon} size={21} color="#C5B8FF" />
+      <View
+        style={[styles.rowIcon, { backgroundColor: colors.iconBackground }]}
+      >
+        <HugeiconsIcon icon={icon} size={21} color={colors.accent} />
       </View>
       <View style={styles.rowCopy}>
-        <Text style={styles.rowTitle}>{title}</Text>
+        <Text style={[styles.rowTitle, { color: colors.text }]}>{title}</Text>
         {description && (
-          <Text style={styles.rowDescription}>{description}</Text>
+          <Text style={[styles.rowDescription, { color: colors.muted }]}>
+            {description}
+          </Text>
         )}
       </View>
       {accessory ?? (
-        <Text style={styles.chevron} accessibilityLabel="Open">
+        <Text
+          style={[styles.chevron, { color: colors.accent }]}
+          accessibilityLabel="Open"
+        >
           ›
         </Text>
       )}
@@ -267,6 +332,20 @@ const styles = StyleSheet.create({
   version: {
     color: "#B7A5FF",
     fontSize: 12,
+    fontWeight: "700",
+  },
+  themeOptions: {
+    flexDirection: "row",
+    gap: 4,
+  },
+  themeOption: {
+    borderRadius: 10,
+    borderWidth: 1,
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+  },
+  themeOptionText: {
+    fontSize: 11,
     fontWeight: "700",
   },
 });

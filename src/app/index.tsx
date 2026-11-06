@@ -17,6 +17,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import HomePage from "@/components/HomePage";
 import BottomBar from "@/components/browser/BottomBar";
 import { BrowserSessionProvider } from "@/stores/BrowserSessionContext";
+import { useTheme } from "@/stores/themeContext";
 import {
   useActiveTab,
   useActiveTabId,
@@ -26,6 +27,7 @@ import {
 
 export default function BrowserScreen() {
   const router = useRouter();
+  const { colors } = useTheme();
   const webViewsRef = useRef(new Map<string, WebViewType>());
 
   const tabs = useVisibleTabs();
@@ -99,12 +101,12 @@ export default function BrowserScreen() {
       <SafeAreaView
         style={{
           flex: 1,
-          backgroundColor: "#11111B",
+          backgroundColor: colors.background,
           justifyContent: "center",
           alignItems: "center",
         }}
       >
-        <ActivityIndicator size="large" color="#B7A5FF" />
+        <ActivityIndicator size="large" color={colors.accent} />
       </SafeAreaView>
     );
   }
@@ -113,7 +115,7 @@ export default function BrowserScreen() {
 
   return (
     <SafeAreaView
-      style={{ flex: 1, backgroundColor: "#11111B" }}
+      style={{ flex: 1, backgroundColor: colors.background }}
       edges={["top"]}
     >
       <KeyboardAvoidingView

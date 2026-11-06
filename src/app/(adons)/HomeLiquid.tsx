@@ -1,11 +1,14 @@
 import { View } from "react-native";
 import WebView from "react-native-webview";
+import { useTheme } from "@/stores/themeContext";
 
 export default function HomeLiquid() {
+  const { colorScheme } = useTheme();
   return (
     <View
       style={{
         flex: 1,
+        opacity: colorScheme === "light" ? 0.16 : 1,
         position: "absolute",
         overflow: "hidden",
         inset: 0,

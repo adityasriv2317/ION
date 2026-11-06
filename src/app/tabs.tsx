@@ -22,6 +22,7 @@ import Animated, {
 
 import * as SwiftUI from "@expo/ui/swift-ui/modifiers";
 import * as Jetpack from "@expo/ui/jetpack-compose/modifiers";
+import { useTheme } from "@/stores/themeContext";
 
 const buttonUI = {
   ios: [
@@ -96,14 +97,13 @@ function TabCard({
   onToggleBookmark,
   onClose,
 }: TabCardProps) {
+  const { colors } = useTheme();
   const [isClosing, setIsClosing] = useState(false);
 
   const animatedStyle = useAnimatedStyle(
     () => ({
       opacity: withTiming(isClosing ? 0 : 1, { duration: 180 }),
-      transform: [
-        { scale: withTiming(isClosing ? 0 : 1, { duration: 220 }) },
-      ],
+      transform: [{ scale: withTiming(isClosing ? 0 : 1, { duration: 220 }) }],
     }),
     [isClosing],
   );
@@ -122,19 +122,38 @@ function TabCard({
   return (
     <Animated.View
       style={[
-        styles.tabCard,
-        isActive && styles.activeTabCard,
+        [
+          styles.tabCard,
+          {
+            backgroundColor: colors.backgroundElement,
+            borderColor: colors.border,
+          },
+        ],
+        isActive && [
+          styles.activeTabCard,
+          {
+            backgroundColor: colors.backgroundSelected,
+            borderColor: colors.accent,
+          },
+        ],
         animatedStyle,
       ]}
     >
       <Pressable onPress={onSelect} style={styles.tabButton}>
         <Text
           numberOfLines={2}
-          style={[styles.tabTitle, isActive && styles.activeTabTitle]}
+          style={[
+            styles.tabTitle,
+            { color: colors.textSecondary },
+            isActive && [styles.activeTabTitle, { color: colors.text }],
+          ]}
         >
           {tab.title || "New Tab"}
         </Text>
-        <Text numberOfLines={1} style={styles.tabUrl}>
+        <Text
+          numberOfLines={1}
+          style={[styles.tabUrl, { color: colors.muted }]}
+        >
           {tab.url}
         </Text>
       </Pressable>
@@ -143,9 +162,7 @@ function TabCard({
         <Pressable
           onPress={onToggleBookmark}
           accessibilityRole="button"
-          accessibilityLabel={
-            isBookmarked ? "Remove bookmark" : "Bookmark tab"
-          }
+          accessibilityLabel={isBookmarked ? "Remove bookmark" : "Bookmark tab"}
           hitSlop={8}
           style={styles.bookmarkButton}
         >
@@ -183,17 +200,20 @@ export default function TabsScreen() {
   const isIncognito = useBrowserStore((s) => s.isIncognito);
   const setIncognito = useBrowserStore((s) => s.setIncognito);
   const { width } = useWindowDimensions();
+  const { colors } = useTheme();
   const columns = width >= 700 ? 3 : 2;
 
   return (
-    <SafeAreaView style={styles.screen}>
+    <SafeAreaView
+      style={[styles.screen, { backgroundColor: colors.background }]}
+    >
       <View style={styles.header}>
         <AdaptiveButton
           label=""
           systemImage={SystemIcons.arrowBack}
           onPressButton={() => router.back()}
-          backgroundColor="#292747"
-          textColor="#FFFFFF"
+          backgroundColor={colors.buttonBg}
+          textColor={colors.text}
           uiModifiers={{
             ios: [
               SwiftUI.glassEffect({
@@ -206,7 +226,7 @@ export default function TabsScreen() {
             ],
           }}
         />
-        <Text style={styles.heading}>Tabs</Text>
+        <Text style={[styles.heading, { color: colors.text }]}>Tabs</Text>
         <View style={styles.headerSpacer} />
       </View>
 
@@ -371,7 +391,7 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 10,
-    backgroundColor: "#34202E",
+    backgroundColor: "#55010b",
     alignItems: "center",
     justifyContent: "center",
   },

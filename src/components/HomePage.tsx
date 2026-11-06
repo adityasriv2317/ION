@@ -164,10 +164,7 @@ export default function HomePage({ onNavigate }: Props) {
                   returnKeyType="next"
                   onChangeText={setTitle}
                   uiModifiers={{
-                    android: [
-                      // Jetpack.fillMaxWidth(),
-                      Jetpack.matchParentSize(),
-                    ],
+                    android: [Jetpack.fillMaxWidth()],
                   }}
                 />
                 <TextInput
@@ -193,7 +190,6 @@ export default function HomePage({ onNavigate }: Props) {
                     label=""
                     systemImage={SystemIcons.add}
                     onPressButton={addFavourite}
-                    disabled={!canAdd}
                     backgroundColor="transparent"
                     textColor="#FFFFFF"
                     uiModifiers={buttonUI}
@@ -369,7 +365,7 @@ const styles = StyleSheet.create({
   },
   removeButton: {
     alignItems: "center",
-    backgroundColor: "#FF5F6D",
+    backgroundColor: "#ffacac",
     borderColor: "#161525",
     borderRadius: 12,
     borderWidth: 2,
@@ -381,7 +377,7 @@ const styles = StyleSheet.create({
     width: 24,
   },
   removeText: {
-    color: "#FFFFFF",
+    color: "black",
     fontSize: 18,
     lineHeight: 19,
   },

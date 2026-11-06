@@ -19,6 +19,7 @@ import type { HistoryEntry } from "@/types/browser";
 import AdaptiveButton from "@/components/ui/button";
 import { SystemIcons } from "@/constants/icons";
 import { useBrowserStore } from "@/stores/browserStore";
+import { useTheme } from "@/stores/themeContext";
 
 export default function HistoryScreen() {
   const router = useRouter();
@@ -28,6 +29,7 @@ export default function HistoryScreen() {
   const [error, setError] = useState<string | null>(null);
   const [isClearing, setIsClearing] = useState(false);
   const { width } = useWindowDimensions();
+  const { colors } = useTheme();
   const columns = width >= 700 ? 3 : 2;
 
   useEffect(() => {
@@ -85,14 +87,16 @@ export default function HistoryScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.screen}>
+    <SafeAreaView
+      style={[styles.screen, { backgroundColor: colors.background }]}
+    >
       <View style={styles.header}>
         <AdaptiveButton
           label=""
           systemImage={SystemIcons.arrowBack}
           onPressButton={() => router.back()}
-          backgroundColor="#292747"
-          textColor="#FFFFFF"
+          backgroundColor={colors.buttonBg}
+          textColor={colors.text}
           uiModifiers={{
             ios: [
               SwiftUI.glassEffect({
@@ -105,7 +109,7 @@ export default function HistoryScreen() {
             ],
           }}
         />
-        <Text style={styles.heading}>History</Text>
+        <Text style={[styles.heading, { color: colors.text }]}>History</Text>
         {history.length > 0 && (
           <AdaptiveButton
             label=""
@@ -131,9 +135,11 @@ export default function HistoryScreen() {
       </View>
 
       {isLoading ? (
-        <ActivityIndicator color="#B7A5FF" style={styles.center} />
+        <ActivityIndicator color={colors.accent} style={styles.center} />
       ) : error ? (
-        <Text style={styles.message}>{error}</Text>
+        <Text style={[styles.message, { color: colors.textSecondary }]}>
+          {error}
+        </Text>
       ) : (
         <FlatList
           data={history}
@@ -146,24 +152,38 @@ export default function HistoryScreen() {
           showsVerticalScrollIndicator={false}
           renderItem={({ item }) => (
             <Pressable
-              style={styles.card}
+              style={[
+                styles.card,
+                {
+                  backgroundColor: colors.backgroundElement,
+                  borderColor: colors.border,
+                },
+              ]}
               onPress={() => openHistoryEntry(item.url)}
               accessibilityRole="button"
               accessibilityLabel={`Open ${item.title || item.url}`}
             >
-              <Text style={styles.title} numberOfLines={1}>
+              <Text
+                style={[styles.title, { color: colors.text }]}
+                numberOfLines={1}
+              >
                 {item.title || "Untitled page"}
               </Text>
-              <Text style={styles.url} numberOfLines={1}>
+              <Text
+                style={[styles.url, { color: colors.textSecondary }]}
+                numberOfLines={1}
+              >
                 {item.url}
               </Text>
-              <Text style={styles.date}>
+              <Text style={[styles.date, { color: colors.textSecondary }]}>
                 {new Date(item.visitedAt).toLocaleDateString()}
               </Text>
             </Pressable>
           )}
           ListEmptyComponent={
-            <Text style={styles.message}>No history yet.</Text>
+            <Text style={[styles.message, { color: colors.textSecondary }]}>
+              No history yet.
+            </Text>
           }
         />
       )}

@@ -6,6 +6,7 @@ import {
   Text,
   View,
 } from "react-native";
+import { useTheme } from "@/stores/themeContext";
 
 export type BuiltForMobileSheetProps = {
   isPresented: boolean;
@@ -16,6 +17,7 @@ export default function BuiltForMobileSheet({
   isPresented,
   onDismiss,
 }: BuiltForMobileSheetProps) {
+  const { colors } = useTheme();
   return (
     <Modal
       visible={isPresented}
@@ -24,9 +26,9 @@ export default function BuiltForMobileSheet({
       onRequestClose={onDismiss}
     >
       <Pressable style={styles.backdrop} onPress={onDismiss}>
-        <View style={styles.sheet}>
-          <Text style={styles.title}>About the developer</Text>
-          <Text style={styles.detail}>
+        <View style={[styles.sheet, { backgroundColor: colors.backgroundElement }]}>
+          <Text style={[styles.title, { color: colors.text }]}>About the developer</Text>
+          <Text style={[styles.detail, { color: colors.textSecondary }]}>
             Follow the project and see more work on GitHub.
           </Text>
           <Pressable
@@ -35,10 +37,10 @@ export default function BuiltForMobileSheet({
             }
             style={styles.link}
           >
-            <Text style={styles.linkText}>GitHub</Text>
+            <Text style={[styles.linkText, { color: colors.accent }]}>GitHub</Text>
           </Pressable>
-          <Pressable onPress={onDismiss} style={styles.button}>
-            <Text style={styles.buttonText}>Done</Text>
+          <Pressable onPress={onDismiss} style={[styles.button, { backgroundColor: colors.accent }]}>
+            <Text style={[styles.buttonText, { color: colors.accentText }]}>Done</Text>
           </Pressable>
         </View>
       </Pressable>

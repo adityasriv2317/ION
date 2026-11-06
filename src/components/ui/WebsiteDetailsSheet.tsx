@@ -9,6 +9,7 @@ import {
 } from "react-native";
 
 import type { WebsiteDetailsSheetProps } from "../../types/WebsiteDetailsSheet.types";
+import { useTheme } from "@/stores/themeContext";
 
 export function WebsiteDetailsSheet({
   isPresented,
@@ -17,6 +18,7 @@ export function WebsiteDetailsSheet({
   title,
   url,
 }: WebsiteDetailsSheetProps) {
+  const { colors } = useTheme();
   return (
     <Modal
       visible={isPresented}
@@ -25,17 +27,25 @@ export function WebsiteDetailsSheet({
       onRequestClose={onDismiss}
     >
       <Pressable style={styles.backdrop} onPress={onDismiss}>
-        <View style={styles.sheet}>
+        <View
+          style={[styles.sheet, { backgroundColor: colors.backgroundElement }]}
+        >
           {favicon ? (
             <Image source={{ uri: favicon }} style={styles.favicon} />
           ) : null}
-          <Text style={styles.title}>{title || "Untitled website"}</Text>
-          <Text style={styles.url}>{url}</Text>
+          <Text style={[styles.title, { color: colors.text }]}>
+            {title || "Untitled website"}
+          </Text>
+          <Text style={[styles.url, { color: colors.textSecondary }]}>
+            {url}
+          </Text>
           <Pressable
             onPress={() => void Share.share({ message: url })}
-            style={styles.button}
+            style={[styles.button, { backgroundColor: colors.accent }]}
           >
-            <Text style={styles.buttonText}>Share</Text>
+            <Text style={[styles.buttonText, { color: colors.accentText }]}>
+              Share
+            </Text>
           </Pressable>
         </View>
       </Pressable>

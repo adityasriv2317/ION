@@ -7,6 +7,7 @@ import {
   useNativeState,
   IconButton,
   type TextFieldRef,
+  Image,
 } from "@expo/ui/jetpack-compose";
 import {
   background,
@@ -26,7 +27,7 @@ import {
 
 import { SystemIcons } from "@/constants/icons";
 
-const globeImage = require("../../../assets/images/globe.png");
+const globeImage = require("../../assets/globe.png");
 
 export interface AddressBarProps {
   value: string;
@@ -97,12 +98,12 @@ export function AddressBar({
                 Shapes.RoundedCorner({
                   topEnd: 32,
                   bottomEnd: 32,
-                  topStart: 10,
-                  bottomStart: 10,
+                  topStart: 8,
+                  bottomStart: 8,
                 }),
               ),
               background("#24262cdd"),
-              padding(0, 2, 0, 2),
+              padding(2, 2, 0, 2),
             ]}
           >
             <TextField
@@ -121,6 +122,11 @@ export function AddressBar({
                 focusedIndicatorColor: "transparent",
                 unfocusedIndicatorColor: "transparent",
                 disabledIndicatorColor: "transparent",
+                focusedContainerColor: "#22272e",
+                unfocusedContainerColor: "#22272e",
+                disabledContainerColor: "#22272e",
+                focusedTextColor: "#ffffff",
+                unfocusedTextColor: "#bbbbbb",
               }}
               keyboardActions={{
                 onGo: submit,
@@ -137,10 +143,13 @@ export function AddressBar({
                 weight(1),
                 clip(
                   Shapes.RoundedCorner({
-                    topEnd: 24,
-                    bottomEnd: 24,
+                    topEnd: 28,
+                    bottomEnd: 28,
+                    topStart: 8,
+                    bottomStart: 8,
                   }),
                 ),
+                // background("yellow"),
               ]}
             >
               <TextField.Placeholder>

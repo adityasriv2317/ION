@@ -1,4 +1,4 @@
-import { useRef, useMemo } from "react";
+import { useRef, useMemo, useState } from "react";
 import {
   View,
   ActivityIndicator,
@@ -11,6 +11,52 @@ import type { WebViewNavigation } from "react-native-webview/lib/WebViewTypes";
 import { useBrowserStore } from "../../stores/browserStore";
 
 import { recordVisit } from "@/db/history";
+
+const androidPullToRefreshScript = `
+(function () {
+  if (window.__ionPullToRefreshInstalled) {
+    return true;
+  }
+
+  window.__ionPullToRefreshInstalled = true;
+  var startY = 0;
+  var shouldRefresh = false;
+  var refreshPending = false;
+
+  document.addEventListener("touchstart", function (event) {
+    if (event.touches.length === 1) {
+      startY = event.touches[0].clientY;
+      shouldRefresh = false;
+    }
+  }, { capture: true, passive: true });
+
+  document.addEventListener("touchmove", function (event) {
+    if (event.touches.length !== 1 || refreshPending) {
+      return;
+    }
+
+    var scrollTop = document.scrollingElement
+      ? document.scrollingElement.scrollTop
+      : window.scrollY;
+    var distance = event.touches[0].clientY - startY;
+    shouldRefresh = scrollTop <= 0 && distance > 72;
+  }, { capture: true, passive: true });
+
+  document.addEventListener("touchend", function () {
+    if (shouldRefresh && !refreshPending && window.ReactNativeWebView) {
+      refreshPending = true;
+      window.ReactNativeWebView.postMessage("ion-pull-to-refresh");
+      window.setTimeout(function () {
+        refreshPending = false;
+      }, 1000);
+    }
+
+    startY = 0;
+    shouldRefresh = false;
+  }, { capture: true, passive: true });
+})();
+true;
+`;
 
 function createHistoryId() {
   return `${Date.now()}-${Math.random().toString(36).slice(2)}`;
@@ -27,11 +73,14 @@ export const getFaviconUrl = (pageUrl: string) => {
   if (!pageUrl) return undefined;
 
   try {
-    // Force a protocol so new URL() doesn't fail on bare domains
-    const validUrl = pageUrl.startsWith("http")
+    const validUrl = pageUrl.includes("://")
       ? pageUrl
       : `https://${pageUrl}`;
-    const domain = new URL(validUrl).hostname;
+    const parsedUrl = new URL(validUrl);
+
+    if (!["http:", "https:"].includes(parsedUrl.protocol)) return undefined;
+
+    const domain = parsedUrl.hostname;
 
     if (!domain || domain === "localhost") return undefined;
 
@@ -50,6 +99,7 @@ export default function BrowserWebView({
   const ref = useRef<WebViewType>(null);
   const pendingNavigationUrl = useRef<string | null>(null);
   const lastRecordedUrl = useRef<string | null>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const updateTab = useBrowserStore((s) => s.updateTab);
   const canGoBack = useBrowserStore(
     (s) =>
@@ -121,14 +171,35 @@ export default function BrowserWebView({
         source={{ uri: url }}
         onNavigationStateChange={onNavigationStateChange}
         onLoadStart={() => updateTab(tabId, { isLoading: true })}
-        onLoadEnd={() => updateTab(tabId, { isLoading: false })}
-        onError={() => updateTab(tabId, { isLoading: false })}
-        onHttpError={() => updateTab(tabId, { isLoading: false })}
+        onLoadEnd={() => {
+          updateTab(tabId, { isLoading: false });
+          setIsRefreshing(false);
+        }}
+        onError={() => {
+          updateTab(tabId, { isLoading: false });
+          setIsRefreshing(false);
+        }}
+        onHttpError={() => {
+          updateTab(tabId, { isLoading: false });
+          setIsRefreshing(false);
+        }}
+        onMessage={(event) => {
+          if (
+            Platform.OS === "android" &&
+            event.nativeEvent.data === "ion-pull-to-refresh"
+          ) {
+            setIsRefreshing(true);
+            ref.current?.reload();
+          }
+        }}
         javaScriptEnabled
         domStorageEnabled
         setSupportMultipleWindows={false}
         startInLoadingState
-        pullToRefreshEnabled
+        pullToRefreshEnabled={Platform.OS === "ios"}
+        injectedJavaScript={
+          Platform.OS === "android" ? androidPullToRefreshScript : undefined
+        }
         allowsBackForwardNavigationGestures={true}
         scrollEnabled
         renderLoading={() => (

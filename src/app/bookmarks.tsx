@@ -13,6 +13,7 @@ import * as SwiftUI from "@expo/ui/swift-ui/modifiers";
 import { useBrowserStore } from "@/stores/browserStore";
 import AdaptiveButton from "@/components/ui/button";
 import { SystemIcons } from "@/constants/icons";
+import { useTheme } from "@/stores/themeContext";
 
 export default function BookmarksScreen() {
   const router = useRouter();
@@ -20,6 +21,7 @@ export default function BookmarksScreen() {
   const addTab = useBrowserStore((state) => state.addTab);
   const removeBookmark = useBrowserStore((state) => state.removeBookmark);
   const { width } = useWindowDimensions();
+  const { colors } = useTheme();
   const columns = width >= 700 ? 3 : 2;
 
   const openBookmark = (url: string) => {
@@ -28,14 +30,16 @@ export default function BookmarksScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.screen}>
+    <SafeAreaView
+      style={[styles.screen, { backgroundColor: colors.background }]}
+    >
       <View style={styles.header}>
         <AdaptiveButton
           label=""
           systemImage={SystemIcons.arrowBack}
           onPressButton={() => router.back()}
-          backgroundColor="#292747"
-          textColor="#FFFFFF"
+          backgroundColor={colors.buttonBg}
+          textColor={colors.text}
           uiModifiers={{
             ios: [
               SwiftUI.glassEffect({
@@ -48,7 +52,7 @@ export default function BookmarksScreen() {
             ],
           }}
         />
-        <Text style={styles.heading}>Bookmarks</Text>
+        <Text style={[styles.heading, { color: colors.text }]}>Bookmarks</Text>
         <View style={styles.headerSpacer} />
       </View>
 
@@ -63,16 +67,28 @@ export default function BookmarksScreen() {
         showsVerticalScrollIndicator={false}
         renderItem={({ item }) => (
           <Pressable
-            style={styles.card}
+            style={[
+              styles.card,
+              {
+                backgroundColor: colors.backgroundElement,
+                borderColor: colors.border,
+              },
+            ]}
             onPress={() => openBookmark(item.url)}
             accessibilityRole="button"
             accessibilityLabel={`Open ${item.title || item.url}`}
           >
             <View style={styles.details}>
-              <Text style={styles.title} numberOfLines={2}>
+              <Text
+                style={[styles.title, { color: colors.text }]}
+                numberOfLines={2}
+              >
                 {item.title || "Untitled bookmark"}
               </Text>
-              <Text style={styles.url} numberOfLines={1}>
+              <Text
+                style={[styles.url, { color: colors.textSecondary }]}
+                numberOfLines={1}
+              >
                 {item.url}
               </Text>
             </View>
@@ -88,7 +104,9 @@ export default function BookmarksScreen() {
           </Pressable>
         )}
         ListEmptyComponent={
-          <Text style={styles.message}>No bookmarks yet.</Text>
+          <Text style={[styles.message, { color: colors.textSecondary }]}>
+            No bookmarks yet.
+          </Text>
         }
       />
     </SafeAreaView>

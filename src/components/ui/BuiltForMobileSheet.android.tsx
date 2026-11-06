@@ -31,10 +31,7 @@ export default function BuiltForMobileSheet({
           <Text style={{ fontSize: 22, fontWeight: "bold" }}>
             About the developer
           </Text>
-          <Text modifiers={[padding(0, 0, 0, 8)]}>
-            ION is crafted with a focus on simple, private mobile browsing.
-          </Text>
-          <Text modifiers={[padding(0, 0, 0, 16)]}>
+          <Text modifiers={[padding(0, 16, 0, 16)]}>
             Follow the project and see more work on GitHub.
           </Text>
           <Button
